@@ -2,8 +2,10 @@ package org.moyrax.javascript.runner;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.net.URL;
 import java.util.ArrayList;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
@@ -115,9 +117,45 @@ public class Shell extends Global {
       }
     }
 
-    return null;
+    /* File not found in the context path. Tries to retrieve the resource from
+       the class path. */
+    return getResourceFromClassPath(resourceName);
   }
 
+  /**
+   * Retrieves the specified resource from the classpath.
+   *
+   * @param resourceName Name (including classpath) of the required resource.
+   *
+   * @return The File representing the required resource, or null if the
+   *    resource was not found.
+   */
+  private static File getResourceFromClassPath(final String resourceName) {
+
+    String classPath = resourceName;
+
+    if (classPath.startsWith("/")) {
+      classPath = StringUtils.substringAfter(classPath, "/");
+    }
+
+    final URL resourceUrl = Thread.currentThread().getContextClassLoader()
+         .getResource(classPath);
+
+    File file = null;
+
+    if (resourceUrl != null) {
+      file = new File(resourceUrl.getFile());
+    }
+
+    return file;
+  }
+
+  /**
+   * Takes a directory and creates a list of all its subdirectories which will
+   * be used as the context path for this Rhino context.
+   *
+   * @param directory Directory from subdirs will be listed.
+   */
   private static void parseContextPath(final File directory) {
     final File[] subdirs = directory.listFiles(directoryFilter);
 
