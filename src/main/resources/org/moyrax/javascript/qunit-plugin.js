@@ -77,6 +77,12 @@ QUnitPlugin = {
           print("Test '" + tests[i].name + "' finished: " +
             QUnitPluginHelper.formatResults(
               tests[i].failures, tests[i].total));
+
+          /* If the test has failures, the build is aborted. */
+          if (tests[i].failures && !isNaN(tests[i].failures)) {
+            throw "The test '" + tests[i].name + "' has " + tests[i].failures +
+              " failures.";
+          }
         }
       }
     }
@@ -117,7 +123,7 @@ QUnitPluginHelper = {
     var failureStr = "";
     var assertStr = "";
 
-    if (failures && !isNaN(failures)) {
+    if ((failures !== undefined) && !isNaN(failures)) {
       if (failures === 0) {
         failureStr = "No failures";
       } else if (failures === 1) {
@@ -127,7 +133,7 @@ QUnitPluginHelper = {
       }
     }
 
-    if (total && !isNaN(total)) {
+    if ((total !== undefined) && !isNaN(total)) {
       if (total === 0) {
         assertStr = "No tests to run";
       } else if (total > 0) {
@@ -208,7 +214,7 @@ QUnitPluginHelper = {
     var test = this.getTestByName(name);
 
     if (test == null) {
-      throw "The test '" + name + "' does not exists.";
+      return;
     }
 
     test.failures = failures;
