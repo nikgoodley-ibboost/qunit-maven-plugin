@@ -246,11 +246,11 @@ public class QUnitPlugin extends AbstractMojo {
   private void loadContextResources() throws MojoExecutionException {
     final String[] dependencies = new String[] {
       /* QUnit testing framework. */
-      "org/moyrax/javascript/qunit.js",
+      "org/moyrax/javascript/lib/qunit.js",
       /* QUnit plugin related objects. */
-      "org/moyrax/javascript/qunit-objects.js",
+      "org/moyrax/javascript/lib/qunit-objects.js",
       /* QUnit plugin test handler. */
-      "org/moyrax/javascript/qunit-plugin.js"
+      "org/moyrax/javascript/lib/qunit-plugin.js"
     };
 
     for (int i = 0; i < dependencies.length; i++) {

@@ -73,11 +73,15 @@ public class TestDriverServer extends Thread {
   public void run() {
     JsTestDriverServer.main(context.getServerParameters());
 
+    logger.info("Testing Server started on port " + context.getServerPort());
+
     this.started = true;
 
     this.semaphore.release();
 
     while (this.started) {}
+
+    logger.info("Shutting down Testing Server...");
   }
 
   /**
