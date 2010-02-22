@@ -3,7 +3,7 @@
 
   <groupId>org.moyrax</groupId>
   <artifactId>qunit-maven-plugin</artifactId>
-  <version>1.0</version>
+  <version>1.1-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
   <name>QUnit Testing Suite plugin</name>
   <url>http://maven.apache.org</url>
@@ -201,8 +201,8 @@
   </build>
 
   <scm>
-    <connection>scm:svn:http://qunit-maven-plugin.googlecode.com/svn/tags/1.0</connection>
-    <developerConnection>scm:svn:https://qunit-maven-plugin.googlecode.com/svn/tags/1.0</developerConnection>
-    <url>http://qunit-maven-plugin.googlecode.com/svn/tags/1.0</url>
+    <connection>scm:svn:http://qunit-maven-plugin.googlecode.com/svn/trunk/</connection>
+    <developerConnection>scm:svn:https://qunit-maven-plugin.googlecode.com/svn/trunk/</developerConnection>
+    <url>http://qunit-maven-plugin.googlecode.com/svn/trunk/</url>
   </scm>
 </project>
