@@ -1,4 +1,4 @@
-package org.moyrax.javascript.runner;
+package org.moyrax.javascript;
 
 import java.io.File;
 import java.io.FileFilter;

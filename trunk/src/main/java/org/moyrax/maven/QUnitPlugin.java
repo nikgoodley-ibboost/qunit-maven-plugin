@@ -1,4 +1,4 @@
-package org.moyrax.javascript.runner;
+package org.moyrax.maven;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -6,6 +6,7 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
+import org.moyrax.javascript.Shell;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.Scriptable;
