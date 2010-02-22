@@ -2,11 +2,6 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <artifactId>javascript-maven-tools</artifactId>
-    <groupId>org.moyrax</groupId>
-    <version>1.1-SNAPSHOT</version>
-  </parent>
 
   <groupId>org.moyrax</groupId>
   <artifactId>qunit-maven-plugin</artifactId>
@@ -193,6 +188,23 @@
           <target>1.5</target>
         </configuration>
       </plugin>
+
+      <!-- Allows make release tracking from the project.-->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.0-beta-7</version>
+        <configuration>
+          <tagBase>https://qunit-maven-plugin.googlecode.com/svn/tags</tagBase>
+          <preparationGoals>install</preparationGoals>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
+
+  <scm>
+    <connection>scm:svn:http://qunit-maven-plugin.googlecode.com/svn/trunk/</connection>
+    <developerConnection>scm:svn:https://qunit-maven-plugin.googlecode.com/svn/trunk/</developerConnection>
+    <url>http://qunit-maven-plugin.googlecode.com/svn/trunk/</url>
+  </scm>
 </project>
