@@ -1,15 +1,18 @@
 package org.moyrax.javascript;
 
 import java.io.File;
-import java.io.FileFilter;
-import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.moyrax.resolver.ContextFileResolver;
+import org.moyrax.resolver.ResourceResolver;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.JavaScriptException;
+import org.mozilla.javascript.NativeObject;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.tools.shell.Global;
 
@@ -24,19 +27,26 @@ public class Shell extends Global {
   private static final long serialVersionUID = 1L;
 
   /**
-   * List of directories included in the context path of this shell.
+   * Default protocol name for searching resources.
    */
-  private static ArrayList<File> contextPath = new ArrayList<File>();
+  private static final String DEFAULT_PROTOCOL = "context";
 
   /**
-   * List of directories included in the context path of this shell.
+   * List of resolvers used to load resources on runtime.
    */
-  private static ArrayList<File> excludes = new ArrayList<File>();
+  private static Map<String, ResourceResolver> resolvers =
+      new HashMap<String, ResourceResolver>();
 
-  /* Default constructor. */
+  /**
+   * Locates and retrieves resources from the context path..
+   */
+  private static ContextFileResolver contextResolver;
+
+  /** Default constructor. */
   public Shell() {}
 
   /**
+   * Includes a JavaScript resource from different locations.
    *
    * @param context Current execution context.
    * @param scope   Script global scope.
@@ -49,7 +59,9 @@ public class Shell extends Global {
     final ArrayList<String> files = new ArrayList<String>();
 
     for (int i = 0, j = arguments.length; i < j; i++) {
-      final File file = getResourceFromPath((String)arguments[i]);
+      final String resourceUri = (String)arguments[i];
+
+      final File file = (File)findResolver(resourceUri).resolve(resourceUri);
 
       if (file != null) {
         files.add(file.getAbsolutePath());
@@ -60,6 +72,46 @@ public class Shell extends Global {
     }
 
     load(context, scope, files.toArray(), thisObj);
+  }
+
+  /**
+   * Includes HTML pages.
+   *
+   * @param context Current execution context.
+   * @param scope   Script global scope.
+   * @param arguments  Arguments passed to this method from the script.
+   * @param thisObj Reference to the current javascript object.
+   */
+  public static void includePage(final Context context, final Scriptable scope,
+      final Object[] arguments, final Function thisObj) {
+
+    final HtmlPageContext pageContext = new HtmlPageContext(scope, context);
+
+    for (int i = 0, j = arguments.length; i < j; i++) {
+      String resourceUri;
+      double logLevel = 0;
+
+      if (arguments[i].getClass().equals(NativeObject.class)) {
+        final NativeObject nativeObject = (NativeObject)arguments[i];
+
+        Validate.isTrue(nativeObject.has("url", scope), "The url parameter " +
+            "doesn't exists.");
+
+        resourceUri = (String)nativeObject.get("url", scope);
+
+        if (nativeObject.has("logLevel", scope)) {
+          logLevel = (Double)nativeObject.get("logLevel", scope);
+        }
+      } else {
+        resourceUri = (String)arguments[i];
+      }
+
+      pageContext.setLocation(resourceUri);
+      pageContext.setLogLevel(logLevel);
+      pageContext.open();
+
+      //ScriptableObject.defineProperty(scope, "", value, attributes);
+    }
   }
 
   /**
@@ -85,100 +137,95 @@ public class Shell extends Global {
 
     Validate.notNull(contextPath, "contextPath cannot be null.");
 
-    if (excludes != null) {
-      for (int i = 0, j = excludes.length; i < j; i++) {
-        Shell.excludes.add(excludes[i]);
-      }
+    /* Creates the default resolver. */
+    if (contextResolver == null) {
+      contextResolver = new ContextFileResolver();
+
+      setResolver(DEFAULT_PROTOCOL, contextResolver);
     }
 
-    for (int i = 0, j = contextPath.length; i < j; i++) {
-      parseContextPath(contextPath[i]);
-    }
+    contextResolver.setContextPath(contextPath, excludes);
   }
 
   /**
-   * Resolves the absolute path of a resource and returns a File object related
-   * to the required resource. If the resource is not found, this method will
-   * return <code>null</code>.
+   * Adds a new resolver for the specified protocol. The protocol represents the
+   * starting part of an URI string. For example, a valid location for a
+   * <code>lib</code> protocol coukd be:<br/><br/>
    *
-   * @param resourceName Name of the resource to search for. It cannot be null
-   *    or empty.
+   * lib:/some/path/to/lib.js<br/><br/>
+   *
+   * When the application tries to load a resource specifying the protocol, the
+   * execution will be delegated to the registered resolver.
+   *
+   * @param protocol Protocol name. It cannot be null.
+   * @param resolver {@link ResourceResolver} which handles the protocol. If it
+   *    is null, the resolver will be removed.
+   *
+   * @throws IllegalStateException If the protocol already has a resolver
+   *    attached to it.
    */
-  private static File getResourceFromPath(final String resourceName) {
-    Validate.notNull(resourceName, "resourceName cannot be null or empty.");
-    Validate.notEmpty(resourceName, "resourceName cannot be null or empty.");
+  public static void setResolver(final String protocol,
+      final ResourceResolver resolver) {
 
-    for (int i = 0, j = contextPath.size(); i < j; i++) {
-      final File file = new File(((File)contextPath.get(i)).getAbsolutePath() +
-          "/" + resourceName);
+    Validate.notNull(protocol, "The protocol parameter cannot be null.");
 
-      if (file.exists()) {
-        return file;
-      }
-    }
+    if (resolver == null && resolvers.containsKey(protocol)) {
+      resolvers.remove(protocol);
 
-    /* File not found in the context path. Tries to retrieve the resource from
-       the class path. */
-    return getResourceFromClassPath(resourceName);
-  }
-
-  /**
-   * Retrieves the specified resource from the classpath.
-   *
-   * @param resourceName Name (including classpath) of the required resource.
-   *
-   * @return The File representing the required resource, or null if the
-   *    resource was not found.
-   */
-  private static File getResourceFromClassPath(final String resourceName) {
-
-    String classPath = resourceName;
-
-    if (classPath.startsWith("/")) {
-      classPath = StringUtils.substringAfter(classPath, "/");
-    }
-
-    final URL resourceUrl = Thread.currentThread().getContextClassLoader()
-         .getResource(classPath);
-
-    File file = null;
-
-    if (resourceUrl != null) {
-      file = new File(resourceUrl.getFile());
-    }
-
-    return file;
-  }
-
-  /**
-   * Takes a directory and creates a list of all its subdirectories which will
-   * be used as the context path for this Rhino context.
-   *
-   * @param directory Directory from subdirs will be listed.
-   */
-  private static void parseContextPath(final File directory) {
-    final File[] subdirs = directory.listFiles(directoryFilter);
-
-    if (subdirs == null) {
       return;
     }
 
-    for (int i = 0, j = subdirs.length; i < j; i++) {
-      if (!contextPath.contains(subdirs[i])) {
-        contextPath.add(subdirs[i]);
-      }
-
-      parseContextPath(subdirs[i]);
+    if (resolvers.containsKey(protocol)) {
+      throw new IllegalStateException("The protocol '" + protocol + "' is " +
+          "already handled by a resolver.");
     }
+
+    resolvers.put(protocol, resolver);
   }
 
   /**
-   * This filter allow retrieve only directories from a file listing.
+   * Determines which resolver should handle the specified location.
+   *
+   * @param uri  Location that a resolver must handle. It cannot be null.
+   *
+   * @throws IllegalArgumentException If the protocol of the URI cannot be
+   *    handled by any resolver.
    */
-  private static final FileFilter directoryFilter = new FileFilter() {
-    public boolean accept(final File pathname) {
-      return pathname.exists() && pathname.isDirectory() &&
-        !excludes.contains(pathname);
+  private static ResourceResolver findResolver(final String uri) {
+    Validate.notNull(uri, "The uri parameter cannot be null.");
+
+    /* Is there a protocol? */
+    if (uri.indexOf(":") == -1) {
+      if (contextResolver == null) {
+        /* Oops, I have nothing. */
+        throw new IllegalArgumentException("The context path was not " +
+            "initialized.");
+      }
+
+      return contextResolver;
     }
-  };
+
+    final String protocol = uri.substring(0, uri.indexOf(":"));
+
+    /* Doh, this protocol cannot has a defined resolver. Tries to find
+       a handler. */
+    if (!resolvers.containsKey(protocol)) {
+      Collection<ResourceResolver> resolverList = resolvers.values();
+
+      for (ResourceResolver resolver : resolverList) {
+        int result = resolver.canHandle(uri);
+
+        if (result == ResourceResolver.HANDLE_EXCLUSIVE ||
+            result == ResourceResolver.HANDLE_SHARED) {
+          return resolver;
+        }
+      }
+
+      /* Indeed, I can't handle it. */
+      throw new IllegalArgumentException("The protocol '" + protocol + "' " +
+          "cannot be handled.");
+    }
+
+    return resolvers.get(protocol);
+  }
 }

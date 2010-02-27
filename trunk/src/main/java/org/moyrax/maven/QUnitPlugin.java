@@ -7,16 +7,15 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
 import org.moyrax.javascript.Shell;
+import org.moyrax.resolver.ClassPathResolver;
+import org.moyrax.resolver.LibraryResolver;
+import org.moyrax.util.ScriptUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.util.ArrayList;
 
 /**
@@ -70,7 +69,7 @@ public class QUnitPlugin extends AbstractMojo {
     for (int i = 0, j = testFiles.length; i < j; i++) {
       final File file = new File(directory + "/" + testFiles[i]);
 
-      this.run(file);
+      ScriptUtils.run(context, scope, file);
     }
   }
 
@@ -86,7 +85,8 @@ public class QUnitPlugin extends AbstractMojo {
 
     this.initContext(this.contextPath == null);
     this.loadContextResources();
-    this.run(scriptFile);
+
+    ScriptUtils.run(context, scope, scriptFile);
   }
 
   /**
@@ -114,7 +114,7 @@ public class QUnitPlugin extends AbstractMojo {
       resourcePath = StringUtils.substringAfter(resourcePath, "/");
     }
 
-    this.run(resourcePath);
+    ScriptUtils.run(context, scope, resourcePath);
   }
 
   /**
@@ -140,64 +140,6 @@ public class QUnitPlugin extends AbstractMojo {
     }
 
     this.contextPath = contextPath;
-  }
-
-  /**
-   * Executes the specified reader.
-   *
-   * @param file Script file to be executed. It cannot be null.
-   *
-   * @return Returns the result of the script execution.
-   * @throws Exception
-   */
-  private Object run(final File file) throws MojoExecutionException {
-    Validate.notNull(file, "file cannot be null.");
-    try {
-      final Reader reader = new FileReader(file);
-
-      return this.run(reader, file.getName());
-    } catch (IOException ex) {
-      throw new MojoExecutionException("Error opening input file.", ex);
-    }
-  }
-
-  /**
-   * Executes the script from a classpath resource.
-   *
-   * @param classPath Class path of the resource to be executed.
-   *
-   * @return Returns the result of the script execution.
-   * @throws MojoExecutionException
-   */
-  private Object run (final String classPath) throws MojoExecutionException {
-    /* Retrieves the resource from the class path. */
-    final InputStreamReader resource = new InputStreamReader(
-        Thread.currentThread().getContextClassLoader()
-          .getResourceAsStream(classPath));
-
-    return this.run(resource, StringUtils.substringAfterLast(classPath, "/"));
-  }
-
-  /**
-   * Executes the script using the specified reader.
-   *
-   * @param reader Reader from the script will be readed. It cannot be null.
-   *
-   * @return Returns the result of the script execution.
-   * @throws MojoExecutionException
-   */
-  private Object run(final Reader reader, final String name)
-      throws MojoExecutionException {
-    Validate.notNull(reader, "reader cannot be null.");
-
-    try {
-      /* Executes the script in the current context. */
-      return context.evaluateReader(scope, reader, name, 1, null);
-    } catch (Exception ex) {
-      ex.printStackTrace();
-
-      throw new MojoExecutionException("Script error.", ex);
-    }
   }
 
   /**
@@ -228,8 +170,12 @@ public class QUnitPlugin extends AbstractMojo {
     /* Initializes the shell functions in this context. */
     shell.init(context);
 
+    /* Adds the internal protocols resolvers. */
+    Shell.setResolver("lib", new LibraryResolver("/org/moyrax/javascript/lib"));
+    Shell.setResolver("classpath", new ClassPathResolver());
+
     /* Adds the extended shell function to the global scope. */
-    String[] functionNames = { "include" };
+    String[] functionNames = { "include", "includePage" };
 
     shell.defineFunctionProperties(functionNames,
        Shell.class, ScriptableObject.DONTENUM);
@@ -254,7 +200,7 @@ public class QUnitPlugin extends AbstractMojo {
     };
 
     for (int i = 0; i < dependencies.length; i++) {
-      this.run(dependencies[i]);
+      ScriptUtils.run(context, scope, dependencies[i]);
     }
   }
 
