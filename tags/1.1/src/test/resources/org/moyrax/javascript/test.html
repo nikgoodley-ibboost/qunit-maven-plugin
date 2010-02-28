@@ -1,0 +1,15 @@
+<html>
+  <body>
+    <div id="test">Hello</div>
+
+    <script type="text/javascript">
+      include("/org/moyrax/javascript/lib/prototype.js");
+
+      print($("test").innerHTML);
+
+      $("test").update("World from HTML!!");
+
+      print($("test").innerHTML);
+    </script>
+  </body>
+</html>
