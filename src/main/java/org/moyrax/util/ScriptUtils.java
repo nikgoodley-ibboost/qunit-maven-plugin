@@ -3,12 +3,15 @@ package org.moyrax.util;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.mozilla.javascript.Context;
+import org.mozilla.javascript.EcmaError;
 import org.mozilla.javascript.JavaScriptException;
 import org.mozilla.javascript.Scriptable;
 
@@ -21,7 +24,7 @@ import org.mozilla.javascript.Scriptable;
  */
 public class ScriptUtils {
   /**
-   * Executes the specified reader.
+   * Executes the specified file.
    *
    * @param context Current script context. It cannot be null.
    * @param scope Actual execution scope. It cannot be null.
@@ -70,6 +73,42 @@ public class ScriptUtils {
   }
 
   /**
+   * Executes the script from an {@link InputStream}.
+   *
+   * @param context Current script context. It cannot be null.
+   * @param scope Actual execution scope. It cannot be null.
+   * @param input Input stream from the script will be readed.
+   *
+   * @return Returns the result of the script execution.
+   * @throws JavaScriptException
+   */
+  public static Object run (final Context context, final Scriptable scope,
+      final InputStream input) throws JavaScriptException {
+
+    final InputStreamReader resource = new InputStreamReader(input);
+
+    return run(context, scope, resource, "");
+  }
+
+  /**
+   * Executes the script from a list of {@link InputStream}.
+   *
+   * @param context Current script context. It cannot be null.
+   * @param scope Actual execution scope. It cannot be null.
+   * @param inputList List of {@link InputStream} that will be executed.
+   *
+   * @return Returns the result of the script execution.
+   * @throws JavaScriptException
+   */
+  public static void run (final Context context, final Scriptable scope,
+      final List<InputStream> inputList) throws JavaScriptException {
+
+    for (InputStream input : inputList) {
+      run(context, scope, input);
+    }
+  }
+
+  /**
    * Executes the script using the specified reader.
    *
    * @param context Current script context. It cannot be null.
@@ -89,10 +128,16 @@ public class ScriptUtils {
     try {
       /* Executes the script in the current context. */
       return context.evaluateReader(scope, reader, name, 1, null);
-    } catch (Exception ex) {
-      ex.printStackTrace();
+    } catch (EcmaError ex) {
 
-      throw new JavaScriptException("Error loading script..", name, 0);
+      final JavaScriptException wrappedEx = new JavaScriptException(
+          "Error executing script: " + name, name, 0);
+
+      wrappedEx.initCause(ex);
+
+      throw wrappedEx;
+    } catch (IOException ex) {
+      throw new JavaScriptException("Error reading script: " + name, name, 0);
     }
   }
 }

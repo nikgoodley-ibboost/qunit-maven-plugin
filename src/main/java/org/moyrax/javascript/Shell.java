@@ -1,6 +1,7 @@
 package org.moyrax.javascript;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -9,6 +10,7 @@ import java.util.Map;
 import org.apache.commons.lang.Validate;
 import org.moyrax.resolver.ContextFileResolver;
 import org.moyrax.resolver.ResourceResolver;
+import org.moyrax.util.ScriptUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.JavaScriptException;
@@ -57,21 +59,32 @@ public class Shell extends Global {
       final Object[] arguments, final Function thisObj) {
 
     final ArrayList<String> files = new ArrayList<String>();
+    final ArrayList<InputStream> input = new ArrayList<InputStream>();
 
     for (int i = 0, j = arguments.length; i < j; i++) {
       final String resourceUri = (String)arguments[i];
 
-      final File file = (File)findResolver(resourceUri).resolve(resourceUri);
+      final Object result = findResolver(resourceUri).resolve(resourceUri);
 
-      if (file != null) {
-        files.add(file.getAbsolutePath());
+      if (result != null) {
+        if (result.getClass().equals(File.class)) {
+          files.add(((File)result).getAbsolutePath());
+        } else if (InputStream.class.isInstance(result)) {
+          input.add((InputStream)result);
+        }
       } else {
         throw new JavaScriptException(arguments[i].toString() +
             " not found in the context path.", "", 0);
       }
     }
 
-    load(context, scope, files.toArray(), thisObj);
+    if (files.size() > 0) {
+      load(context, scope, files.toArray(), thisObj);
+    }
+
+    if (input.size() > 0) {
+      ScriptUtils.run(context, scope, input);
+    }
   }
 
   /**
@@ -109,8 +122,6 @@ public class Shell extends Global {
       pageContext.setLocation(resourceUri);
       pageContext.setLogLevel(logLevel);
       pageContext.open();
-
-      //ScriptableObject.defineProperty(scope, "", value, attributes);
     }
   }
 

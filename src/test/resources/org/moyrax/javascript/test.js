@@ -1,6 +1,6 @@
 
-test("test1", function() {
-  print("HERE1");
+test("test1", 3, function() {
+  print("Executing test1...");
   ok( true, "test running before jquery loads");
 });
 
@@ -15,6 +15,6 @@ include("lib:/env.js");
 
 includePage({
   url : "/mnt/development/src/maven/qunit-maven-plugin/src/test/resources/org/moyrax/javascript/test.html",
-  logLevel : Envjs.ERROR | Envjs.WARN
+  logLevel : Envjs.NONE
 });
 
