@@ -1,6 +1,6 @@
 package org.moyrax.resolver;
 
-import java.io.File;
+import java.io.InputStream;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -48,7 +48,7 @@ public class LibraryResolver extends ClassPathResolver {
   /**
    * {@inheritDoc ResourceResolver#resolve(String)}
    *
-   * @return If the resource was found, it returns the related {@link File},
+   * @return If the resource was found, it returns an {@link InputStream},
    *    otherwise returns <code>null</code>.
    */
   public Object resolve(final String uri) {

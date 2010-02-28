@@ -1,6 +1,6 @@
 package org.moyrax.resolver;
 
-import java.io.File;
+import java.io.InputStream;
 
 import junit.framework.Assert;
 
@@ -26,13 +26,12 @@ public class LibraryResolverTest {
   @Test
   public void testResolveLib() throws Exception {
     final String libraryName = "test.js";
-    final File result = (File)resolver.resolve(libraryName);
+    final InputStream result = (InputStream)resolver.resolve(libraryName);
 
     Assert.assertNotNull(result);
     Assert.assertEquals(resolver.canHandle(libraryName),
         ResourceResolver.HANDLE_EXCLUSIVE);
-    Assert.assertTrue(result.getCanonicalPath().endsWith(
-        "/org/moyrax/javascript/test.js"));
+    Assert.assertTrue(result.available() > 1);
   }
 
   @Test(expected = IllegalArgumentException.class)

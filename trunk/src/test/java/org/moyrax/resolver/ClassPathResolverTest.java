@@ -1,6 +1,6 @@
 package org.moyrax.resolver;
 
-import java.io.File;
+import java.io.InputStream;
 
 import junit.framework.Assert;
 
@@ -20,13 +20,12 @@ public class ClassPathResolverTest {
   @Test
   public void testResolveScript() throws Exception {
     final String scriptClasspath = "classpath:/org/moyrax/javascript/test.js";
-    final File result = (File)resolver.resolve(scriptClasspath);
+    final InputStream result = (InputStream)resolver.resolve(scriptClasspath);
 
     Assert.assertNotNull(result);
     Assert.assertEquals(resolver.canHandle(scriptClasspath),
         ResourceResolver.HANDLE_EXCLUSIVE);
-    Assert.assertTrue(result.getCanonicalPath().endsWith(
-        "/org/moyrax/javascript/test.js"));
+    Assert.assertTrue(result.available() > 1);
   }
 
   @Test(expected = IllegalArgumentException.class)

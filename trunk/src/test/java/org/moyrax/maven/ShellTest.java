@@ -29,6 +29,7 @@ public class ShellTest {
     shell = new Shell();
 
     context = ContextFactory.getGlobal().enterContext();
+    context.setOptimizationLevel(-1);
     scope = context.initStandardObjects(shell);
 
     shell.init(context);
