@@ -5,6 +5,7 @@ package org.moyrax.maven;
  * tests using the testing server.
  *
  * @author Matias Mirabelli <lumen.night@gmail.com>
+ * @since 1.2
  */
 public class EnvironmentConfiguration {
   /**
