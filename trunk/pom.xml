@@ -173,6 +173,19 @@
         <artifactId>js-test-driver</artifactId>
         <version>1.2</version>
     </dependency>
+
+    <!-- Spring -->
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-core</artifactId>
+      <version>2.5.6</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-support</artifactId>
+      <version>2.0.6</version>
+    </dependency>
   </dependencies>
 
   <build>

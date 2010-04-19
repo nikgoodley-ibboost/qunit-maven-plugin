@@ -11,10 +11,11 @@ test("test2", function() {
   ok( true, "test running after jquery loads");
 });
 
-include("lib:/env.js");
-
+//include("lib:/env.js");
+/*
 includePage({
   url : "/mnt/development/src/maven/qunit-maven-plugin/src/test/resources/org/moyrax/javascript/test.html",
   logLevel : Envjs.NONE
 });
 
+*/

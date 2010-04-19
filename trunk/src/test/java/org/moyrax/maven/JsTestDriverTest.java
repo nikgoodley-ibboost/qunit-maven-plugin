@@ -4,14 +4,14 @@ import java.util.concurrent.Semaphore;
 
 import org.junit.Ignore;
 import org.junit.Test;
-import org.moyrax.javascript.TestContext;
-import org.moyrax.javascript.TestDriverClient;
-import org.moyrax.javascript.TestDriverServer;
+import org.moyrax.javascript.Shell;
+import org.moyrax.resolver.ClassPathResolver;
+import org.moyrax.resolver.LibraryResolver;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 
 public class JsTestDriverTest {
-  private TestContext context = new TestContext();
+  private EnvironmentConfiguration context = new EnvironmentConfiguration();
 
   private Semaphore semaphore = new Semaphore(0, true);
 
@@ -20,7 +20,7 @@ public class JsTestDriverTest {
   public void testApplication() throws Exception {
     final TestDriverServer server = new TestDriverServer(context);
     final TestDriverClient testDriverClient = new TestDriverClient(
-        server, BrowserVersion.INTERNET_EXPLORER_6);
+        server, BrowserVersion.FIREFOX_3);
 
     context.setTestOutputDirectory("test/");
 
@@ -29,31 +29,18 @@ public class JsTestDriverTest {
 
     this.semaphore.acquire();
 
-    testDriverClient.setIncludes(new String[] {
+    testDriverClient.setFiles("", new String[] {
       "test/src/*.js",
       "test/src-test/*.js"
-    });
+    }, new String[] {});
 
-    /* Binds the client to the server. */
-    testDriverClient.capture(this.semaphore);
-
-    this.semaphore.acquire();
+    Shell.setResolver("lib", new LibraryResolver("/org/moyrax/javascript/lib"));
+    Shell.setResolver("classpath", new ClassPathResolver());
 
     /* Run the configured tests. */
     try {
-      /*
-       * TODO(mmirabelli) For some reason js-test-driver locks down inside the
-       * while loop in CommandServlet, because it's expecting a response from
-       * the captured browser, and the response queue in the SlaveBrowser class
-       * is empty when the servlet invokes the getResponse() method.
-       *
-       * I actually think that's a bug in htmlunit implementation, but I didn't
-       * search in deep for it.
-       *
-       * @see com.google.jstestdriver.SlaveBrowser:146
-       * @see com.google.jstestdriver.CommandServlet:71
-       * @see com.google.jstestdriver.CommandTask:144
-       */
+      // TODO(mmirabelli): Remove the Ignore annotation when the TODO's defined
+      // in the classes TestDriverClient and Global will be resolved.
       testDriverClient.runTests();
     } catch(Exception ex) {
       throw new RuntimeException("Error initializing tests.", ex);
