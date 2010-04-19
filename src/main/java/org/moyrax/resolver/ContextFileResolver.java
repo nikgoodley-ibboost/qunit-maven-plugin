@@ -164,9 +164,25 @@ public class ContextFileResolver implements ResourceResolver {
     Validate.notNull(resourceName, "resourceName cannot be null or empty.");
     Validate.notEmpty(resourceName, "resourceName cannot be null or empty.");
 
+    String relativePath = "";
+    String finalName = resourceName;
+
+    if (resourceName.contains("/")) {
+      finalName = StringUtils.substringAfterLast(resourceName, "/");
+      relativePath = StringUtils.substringBeforeLast(resourceName, "/");
+    }
+
+    if (!relativePath.isEmpty()) {
+      if (!relativePath.endsWith("/")) {
+        relativePath += "/";
+      }
+
+      relativePath = relativePath.replaceAll("/", File.separator);
+    }
+
     for (int i = 0, j = contextPath.size(); i < j; i++) {
       final File file = new File(((File)contextPath.get(i)).getAbsolutePath() +
-          "/" + resourceName);
+          "/" + relativePath + finalName);
 
       if (file.exists()) {
         return file;
