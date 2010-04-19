@@ -15,7 +15,7 @@ import org.moyrax.server.WebContextHandler;
  * all the test cases defined in the plugin.
  *
  * @author Matias Mirabelli <lumen.night@gmail.com>
- *
+ * @since 1.2
  */
 public class TestDriverServer extends Thread {
   /** Default logger for this class. */

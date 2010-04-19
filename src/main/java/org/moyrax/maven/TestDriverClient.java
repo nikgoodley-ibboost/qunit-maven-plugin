@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.concurrent.Semaphore;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.Validate;
@@ -24,6 +23,7 @@ import com.gargoylesoftware.htmlunit.javascript.JavaScriptEngine;
  * used to be captured by the js-test-driver server.
  *
  * @author Matias Mirabelli <lumen.night@gmail.com>
+ * @since 1.2
  */
 public class TestDriverClient {
   /** Default logger for this class. */
@@ -46,11 +46,6 @@ public class TestDriverClient {
   private EnvironmentConfiguration context;
 
   /**
-   * Is this browser binded to the server?
-   */
-  private boolean captured;
-
-  /**
    * List of included testing resources to be executed.
    */
   private String[] includes;
@@ -64,11 +59,6 @@ public class TestDriverClient {
    * Configuration file.
    */
   private File configFile;
-
-  /**
-   * This semaphore waits for client-server operations.
-   */
-  private Semaphore semaphore;
 
   /**
    * Creates a new client which will be captured by the specified server.

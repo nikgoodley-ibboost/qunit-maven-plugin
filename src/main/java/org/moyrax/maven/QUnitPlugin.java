@@ -1,22 +1,23 @@
 package org.moyrax.maven;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import net.sourceforge.htmlunit.corejs.javascript.Context;
+import net.sourceforge.htmlunit.corejs.javascript.Scriptable;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
-import org.moyrax.javascript.Shell;
-import org.moyrax.resolver.ClassPathResolver;
-import org.moyrax.resolver.LibraryResolver;
+import org.moyrax.javascript.ContextPathBuilder;
 import org.moyrax.util.ScriptUtils;
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.ContextFactory;
-import org.mozilla.javascript.Scriptable;
-import org.mozilla.javascript.ScriptableObject;
 
-import java.io.File;
-import java.util.ArrayList;
+import com.gargoylesoftware.htmlunit.BrowserVersion;
+import com.gargoylesoftware.htmlunit.javascript.HtmlUnitContextFactory;
 
 /**
  * Goal which touches a timestamp file.
@@ -39,7 +40,14 @@ public class QUnitPlugin extends AbstractMojo {
    * @parameter
    * @required
    */
-  private FileSet contextPath;
+  private List<Entry> contextPath = new ArrayList<Entry>();
+
+  /**
+   * Port in which the testing server will be started. Default is 3137.
+   *
+   * @parameter
+   */
+  private Integer port;
 
   /**
    * Global engine context.
@@ -57,13 +65,32 @@ public class QUnitPlugin extends AbstractMojo {
   private final FileSetManager fileSetManager = new FileSetManager();
 
   /**
+   * Testing server.
+   */
+  private static TestDriverServer server;
+
+  /**
+   * Testing client.
+   */
+  private static TestDriverClient client;
+
+  /**
    * Executes this plugin when the build reached the defined phase and goal.
    */
   public void execute() throws MojoExecutionException {
+    initServer();
+    initClient();
+
+    // TODO(mmirabelli): The next code no longer works. Please see the
+    // JsTestDriverTest class for more information in order to fix this method.
     final String[] testFiles = fileSetManager.getIncludedFiles(testResources);
     final String directory = testResources.getDirectory();
 
-    this.initContext();
+    this.context = HtmlUnitContextFactory.getGlobal().enterContext();
+    this.scope = this.context.initStandardObjects();
+
+    ContextPathBuilder.build(contextPath);
+
     this.loadContextResources();
 
     for (int i = 0, j = testFiles.length; i < j; i++) {
@@ -83,7 +110,9 @@ public class QUnitPlugin extends AbstractMojo {
   public void execute(final File scriptFile) throws MojoExecutionException {
     Validate.notNull(scriptFile, "scriptFile cannot be null.");
 
-    this.initContext(this.contextPath == null);
+    this.context = HtmlUnitContextFactory.getGlobal().enterContext();
+    this.scope = this.context.initStandardObjects();
+
     this.loadContextResources();
 
     ScriptUtils.run(context, scope, scriptFile);
@@ -98,10 +127,11 @@ public class QUnitPlugin extends AbstractMojo {
    * @throws MojoExecutionException
    */
   public void execute(final String classPath) throws MojoExecutionException {
-    Validate.notNull(classPath, "classPath cannot be null or empty.");
     Validate.notEmpty(classPath, "classPath cannot be null or empty.");
 
-    this.initContext(this.contextPath == null);
+    this.context = HtmlUnitContextFactory.getGlobal().enterContext();
+    this.scope = this.context.initStandardObjects();
+
     this.loadContextResources();
 
     String resourcePath = classPath;
@@ -115,73 +145,6 @@ public class QUnitPlugin extends AbstractMojo {
     }
 
     ScriptUtils.run(context, scope, resourcePath);
-  }
-
-  /**
-   * Sets the context path for this plugin. It can be used to force the context
-   * path instead of take it from the POM configuration.
-   *
-   * @param baseDirectory  Base directory.
-   * @param includes       List of included directories in the context.
-   * @param excludes       List of excluded directories from the context.
-   */
-  public void defineContextPath(final String baseDirectory,
-      final String[] includes, final String[] excludes) {
-    final FileSet contextPath = new FileSet();
-
-    contextPath.setDirectory(baseDirectory);
-
-    for (int i = 0, j = includes.length; i < j; i++) {
-      contextPath.addInclude(includes[i]);
-    }
-
-    for (int i = 0, j = excludes.length; i < j; i++) {
-      contextPath.addExclude(excludes[i]);
-    }
-
-    this.contextPath = contextPath;
-  }
-
-  /**
-   * Initializes the JavaScript engine context and the global environment.
-   */
-  private void initContext() {
-    this.initContext(false);
-  }
-
-  /**
-   * Initializes the JavaScript engine context and the global environment.
-   *
-   * @param standalone  If it's <code>true</code>, the maven's related
-   *    environment will not be initialized.
-   */
-  private void initContext(final boolean standalone) {
-    final Shell shell = new Shell();
-
-    if (standalone == false) {
-      makeContextPath();
-    }
-
-    /* Acquires the context and sets the default flags. */
-    context = ContextFactory.getGlobal().enterContext();
-    context.setOptimizationLevel(-1);
-    context.setLanguageVersion(Context.VERSION_1_5);
-
-    /* Initializes the shell functions in this context. */
-    shell.init(context);
-
-    /* Adds the internal protocols resolvers. */
-    Shell.setResolver("lib", new LibraryResolver("/org/moyrax/javascript/lib"));
-    Shell.setResolver("classpath", new ClassPathResolver());
-
-    /* Adds the extended shell function to the global scope. */
-    String[] functionNames = { "include", "includePage" };
-
-    shell.defineFunctionProperties(functionNames,
-       Shell.class, ScriptableObject.DONTENUM);
-
-    /* Sets the global scope */
-    scope = context.initStandardObjects(shell);
   }
 
   /**
@@ -205,31 +168,32 @@ public class QUnitPlugin extends AbstractMojo {
   }
 
   /**
-   * Creates the context path from the values specified in the POM.
+   * Initializes the environment configuration and starts the testing server.
    */
-  private void makeContextPath() {
-    final String[] includeNames = fileSetManager.getIncludedDirectories(
-        contextPath);
-    final String[] excludeNames = fileSetManager.getExcludedDirectories(
-        contextPath);
-    final ArrayList<File> includes = new ArrayList<File>();
-    final ArrayList<File> excludes = new ArrayList<File>();
-
-    final String baseDir = contextPath.getDirectory();
-
-    /* Adds the included directories. */
-    for (int i = 0, j = includeNames.length; i < j; i++) {
-      includes.add(new File(baseDir + includeNames[i]));
+  private void initServer() {
+    if (server != null) {
+      return;
     }
 
-    /* Adds the excludes directories. */
-    for (int i = 0, j = excludeNames.length; i < j; i++) {
-      excludes.add(new File(baseDir + excludeNames[i]));
+    EnvironmentConfiguration env = new EnvironmentConfiguration();
+
+    env.setServerPort(port);
+
+    server.start();
+  }
+
+  /**
+   * Initializes the testing client.
+   */
+  private void initClient() {
+    if (server == null) {
+      throw new IllegalStateException("The server is not initialized.");
     }
 
-    /* Sets the context path for this scope. */
-    Shell.setContextPath(
-        includes.toArray(new File[] {}),
-        excludes.toArray(new File[] {}));
+    client = new TestDriverClient(server, BrowserVersion.FIREFOX_3);
+
+    client.setFiles(testResources.getDirectory(),
+        fileSetManager.getIncludedFiles(testResources),
+        fileSetManager.getExcludedFiles(testResources));
   }
 }
