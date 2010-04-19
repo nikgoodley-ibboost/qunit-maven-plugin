@@ -8,12 +8,13 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.List;
 
+import net.sourceforge.htmlunit.corejs.javascript.Context;
+import net.sourceforge.htmlunit.corejs.javascript.EcmaError;
+import net.sourceforge.htmlunit.corejs.javascript.JavaScriptException;
+import net.sourceforge.htmlunit.corejs.javascript.Scriptable;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.EcmaError;
-import org.mozilla.javascript.JavaScriptException;
-import org.mozilla.javascript.Scriptable;
 
 /**
  * This class holds all purpose methods to handle and to proccess javascript
@@ -23,6 +24,42 @@ import org.mozilla.javascript.Scriptable;
  * @since 1.1
  */
 public class ScriptUtils {
+  /**
+   * Executes a list of files.
+   *
+   * @param context Current script context. It cannot be null.
+   * @param scope Actual execution scope. It cannot be null.
+   * @param files List of filenames to execute. It cannot be null.
+   *
+   * @throws JavaScriptExceptionJavaScriptException
+   */
+  public static void run(final Context context, final Scriptable scope,
+      final String[] files) throws JavaScriptException {
+    Validate.notNull(files, "The files cannot be null.");
+
+    for (String file : files) {
+      run(context, scope, new File(file));
+    }
+  }
+
+  /**
+   * Executes a list of files.
+   *
+   * @param context Current script context. It cannot be null.
+   * @param scope Actual execution scope. It cannot be null.
+   * @param files List of files to execute. It cannot be null.
+   *
+   * @throws JavaScriptExceptionJavaScriptException
+   */
+  public static void run(final Context context, final Scriptable scope,
+      final File[] files) throws JavaScriptException {
+    Validate.notNull(files, "The files cannot be null.");
+
+    for (File file : files) {
+      run(context, scope, file);
+    }
+  }
+
   /**
    * Executes the specified file.
    *
@@ -55,13 +92,16 @@ public class ScriptUtils {
    *
    * @param context Current script context. It cannot be null.
    * @param scope Actual execution scope. It cannot be null.
-   * @param classPath Class path of the resource to be executed.
+   * @param classPath Class path of the resource to be executed. It cannot be
+   *    null or empty.
    *
    * @return Returns the result of the script execution.
    * @throws JavaScriptException
    */
   public static Object run (final Context context, final Scriptable scope,
       final String classPath) throws JavaScriptException {
+
+    Validate.notEmpty(classPath, "The classPath cannot be null or empty.");
 
     /* Retrieves the resource from the class path. */
     final InputStreamReader resource = new InputStreamReader(
@@ -77,13 +117,16 @@ public class ScriptUtils {
    *
    * @param context Current script context. It cannot be null.
    * @param scope Actual execution scope. It cannot be null.
-   * @param input Input stream from the script will be readed.
+   * @param input Input stream from the script will be readed. It cannot be
+   *    null.
    *
    * @return Returns the result of the script execution.
    * @throws JavaScriptException
    */
   public static Object run (final Context context, final Scriptable scope,
       final InputStream input) throws JavaScriptException {
+
+    Validate.notNull(input, "The InputStream cannot be null.");
 
     final InputStreamReader resource = new InputStreamReader(input);
 
@@ -95,13 +138,16 @@ public class ScriptUtils {
    *
    * @param context Current script context. It cannot be null.
    * @param scope Actual execution scope. It cannot be null.
-   * @param inputList List of {@link InputStream} that will be executed.
+   * @param inputList List of {@link InputStream} that will be executed. It
+   *    cannot be null.
    *
    * @return Returns the result of the script execution.
    * @throws JavaScriptException
    */
   public static void run (final Context context, final Scriptable scope,
       final List<InputStream> inputList) throws JavaScriptException {
+
+    Validate.notNull(inputList, "The InputStream list cannot be null.");
 
     for (InputStream input : inputList) {
       run(context, scope, input);
