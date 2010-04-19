@@ -1,9 +1,10 @@
 package org.moyrax.javascript;
 
+import net.sourceforge.htmlunit.corejs.javascript.Context;
+import net.sourceforge.htmlunit.corejs.javascript.Scriptable;
+
 import org.apache.commons.lang.Validate;
 import org.moyrax.util.ScriptUtils;
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.Scriptable;
 
 /**
  * The {@link HtmlPageContext} class allows to load HTML pages from tests. It
