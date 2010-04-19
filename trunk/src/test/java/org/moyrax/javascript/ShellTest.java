@@ -1,17 +1,19 @@
-package org.moyrax.maven;
+package org.moyrax.javascript;
 
 import java.io.File;
+
+import net.sourceforge.htmlunit.corejs.javascript.Context;
+import net.sourceforge.htmlunit.corejs.javascript.JavaScriptException;
+import net.sourceforge.htmlunit.corejs.javascript.ScriptableObject;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.moyrax.javascript.Shell;
+import org.moyrax.javascript.shell.Global;
 import org.moyrax.resolver.ClassPathResolver;
 import org.moyrax.resolver.LibraryResolver;
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.ContextFactory;
-import org.mozilla.javascript.JavaScriptException;
-import org.mozilla.javascript.Scriptable;
+
+import com.gargoylesoftware.htmlunit.javascript.HtmlUnitContextFactory;
 
 /**
  * Tests the {@link Shell} class.
@@ -22,20 +24,26 @@ import org.mozilla.javascript.Scriptable;
 public class ShellTest {
   private static Shell shell;
   private static Context context;
-  private static Scriptable scope;
+  private static ScriptableObject scope;
 
   @BeforeClass
-  public static void beforeClass() {
+  public static void beforeClass() throws Exception {
     shell = new Shell();
+    ScriptableObjectBean shellBean = new ScriptableObjectBean(Shell.class);
+    ScriptableObjectBean globalBean = new ScriptableObjectBean(Global.class);
 
-    context = ContextFactory.getGlobal().enterContext();
+    context = HtmlUnitContextFactory.getGlobal().enterContext();
     context.setOptimizationLevel(-1);
-    scope = context.initStandardObjects(shell);
-
-    shell.init(context);
+    scope = (ScriptableObject)context.initStandardObjects(shell);
 
     Shell.setResolver("lib", new LibraryResolver("/org/moyrax/javascript/lib"));
     Shell.setResolver("classpath", new ClassPathResolver());
+
+    /* Adds the global functions to the scope. */
+    scope.defineFunctionProperties(shellBean.getFunctionNames(),
+        shellBean.getScriptableClass(), ScriptableObject.DONTENUM);
+    scope.defineFunctionProperties(globalBean.getFunctionNames(),
+            globalBean.getScriptableClass(), ScriptableObject.DONTENUM);
   }
 
   @AfterClass

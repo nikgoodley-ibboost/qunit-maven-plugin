@@ -1,4 +1,4 @@
-package org.moyrax.javascript;
+package org.moyrax.maven;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,10 +10,14 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.moyrax.javascript.ConfigurableEngine;
+import org.moyrax.javascript.ContextPathBuilder;
+import org.moyrax.javascript.Shell;
+import org.moyrax.javascript.shell.Global;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.WebClient;
-import com.google.jstestdriver.JsTestDriverServer;
+import com.gargoylesoftware.htmlunit.javascript.JavaScriptEngine;
 
 /**
  * This class uses HTMLUnit to initialize a browser environment which will be
@@ -23,6 +27,7 @@ import com.google.jstestdriver.JsTestDriverServer;
  */
 public class TestDriverClient {
   /** Default logger for this class. */
+  @SuppressWarnings("unused")
   private static final Log logger = LogFactory.getLog(TestDriverClient.class);
 
   /**
@@ -38,7 +43,7 @@ public class TestDriverClient {
   /**
    * Context configuration for this client.
    */
-  private TestContext context;
+  private EnvironmentConfiguration context;
 
   /**
    * Is this browser binded to the server?
@@ -75,7 +80,9 @@ public class TestDriverClient {
 
     this.server = server;
     this.context = this.server.getContext();
-    this.browser = new WebClient();
+    this.browser = this.createWebClient();
+
+    this.browser.setJavaScriptEngine(this.createJavaScriptEngine());
   }
 
   /**
@@ -92,90 +99,45 @@ public class TestDriverClient {
 
     this.server = server;
     this.context = this.server.getContext();
-    this.browser = new WebClient(version);
-  }
+    this.browser = this.createWebClient(version);
 
-  /**
-   * Binds this client to the configured server. If this client is already
-   * binded to the server, this method will throws an exception.
-   *
-   * @param semaphore Semaphore to wait for the capture be already done.
-   */
-  public void capture(final Semaphore semaphore) {
-    this.semaphore = semaphore;
-
-    this.capture();
-  }
-
-  /**
-   * Binds this client to the configured server. If this client is already
-   * binded to the server, this method will throws an exception.
-   */
-  public void capture() {
-    if (this.captured) {
-      throw new IllegalStateException("This client is already binded to " +
-          "the server.");
-    }
-
-    try {
-      browser.setRedirectEnabled(true);
-      browser.setJavaScriptEnabled(true);
-
-      browser.getPage(this.getCaptureUrl());
-
-      this.captured = true;
-
-      if (this.semaphore != null) {
-        semaphore.release();
-      }
-    } catch (MalformedURLException ex) {
-      logger.error("Error connecting to the testing server.");
-    } catch (IOException ex) {
-      logger.error("Connection refused by the testing server.");
-    }
-  }
-
-  /**
-   * Disconnects this client from the testing server.
-   */
-  public void release() {
-    JsTestDriverServer.main(new String[] {
-      "--reset", "--server", this.context.getLocalUrl()
-    });
-
-    this.captured = false;
+    this.browser.setJavaScriptEngine(this.createJavaScriptEngine());
   }
 
   /**
    * Executes all configured tests.
    */
   public void runTests() {
-    if (!this.captured) {
-      throw new IllegalStateException("The client is not connected to the" +
-          "testing server.");
-    }
-
     if (this.context.getConfigFile() == null) {
       generateConfig();
 
       this.context.setConfigFile(this.configFile.getName());
     }
 
-    final Thread client = new Thread() {
-      @Override
-      public void run() {
-        this.setName("QUnit Testing Client Thread");
+    ContextPathBuilder.build();
 
-        JsTestDriverServer.main(context.getClientParameters());
-      }
-    };
-
-    try {
-      client.start();
-      client.join();
-    } catch(InterruptedException ex) {}
+    browser.openWindow(this.getResourceUrl(), "Test");
 
     this.configFile.delete();
+  }
+
+  /**
+   * Sets the list of patterns to locate testing resources. All resources that
+   * matches the patterns will be executed. It will be used if no configuration
+   * file was found.
+   *
+   * @param theBaseDirectory Directory in which the resources are located.
+   * @param theIncludes List of included test resources.
+   * @param theExcludes List of excluded test resources.
+   */
+  public void setFiles(final String theBaseDirectory,
+      final String[] theIncludes, final String[] theExcludes) {
+
+    this.includes = theIncludes;
+    this.excludes = theExcludes;
+
+    ContextPathBuilder.addDefinition(theBaseDirectory, theIncludes,
+        theExcludes);
   }
 
   /**
@@ -186,31 +148,10 @@ public class TestDriverClient {
   }
 
   /**
-   * Sets the list of patterns to locate testing resources. All resources that
-   * matches the patterns will be executed. It will be used if no configuration
-   * file was found.
-   *
-   * @param includes List of test resources.
-   */
-  public void setIncludes(final String[] includes) {
-    this.includes = includes;
-  }
-
-  /**
    * Returns the list of patterns to exclude from the tests execution.
    */
   public String[] getExcludes() {
     return this.excludes;
-  }
-
-  /**
-   * Sets the list of patterns to exclude from the tests execution. It will be
-   * used if no configuration file was found.
-   *
-   * @param excludes List of test resources.
-   */
-  public void setExcludes(final String[] excludes) {
-    this.excludes = excludes;
   }
 
   /**
@@ -253,14 +194,68 @@ public class TestDriverClient {
     return result;
   }
 
-  private URL getCaptureUrl() throws MalformedURLException {
-    final BrowserVersion versionInfo = this.browser.getBrowserVersion();
+  /**
+   * Creates and returns the url of the resource to be tested.
+   *
+   * @return Returns the built {@link URL}.
+   * @throws IllegalArgumentException if the working string is not a valid URL.
+   */
+  private URL getResourceUrl() {
+    // TODO(mmirabelli) Allow configurable urls.
+    String captureUrl = this.context.getLocalUrl() + "/content/?resource=" +
+        "classpath:/org/moyrax/javascript/test.html";
 
-    String captureUrl = this.context.getLocalUrl() + "/capture";
+    URL url;
 
-    captureUrl += "?version=" + versionInfo.getApplicationVersion();
-    captureUrl += "&os=" + versionInfo.getPlatform();
+    try {
+      url = new URL(captureUrl);
+    } catch (MalformedURLException ex) {
+      throw new IllegalArgumentException("The specified string is not a "
+          + "valid URL.", ex);
+    }
 
-    return new URL(captureUrl);
+    return url;
+  }
+
+  /**
+   * Creates and initializes a new {@link ConfigurableEngine}.
+   *
+   * @return Returns the created {@link ConfigurableEngine}.
+   */
+  private JavaScriptEngine createJavaScriptEngine() {
+    final ConfigurableEngine engine = new ConfigurableEngine(this.browser);
+
+    engine.registerClass(Global.class);
+    engine.registerClass(Shell.class);
+
+    return engine;
+  }
+
+  /**
+   * Creates a new {@link WebClient} and sets the default options.
+   *
+   * @return Returns the new {@link WebClient} instance.
+   */
+  private WebClient createWebClient() {
+    return createWebClient(BrowserVersion.FIREFOX_3);
+  }
+
+  /**
+   * Creates a new {@link WebClient} and sets the default options.
+   *
+   * @param version The version of the browser which will be emulated by this
+   *    client. It cannot be null.
+   *
+   * @return Returns the new {@link WebClient} instance.
+   */
+  private WebClient createWebClient(final BrowserVersion version) {
+    Validate.notNull(version, "The version cannot be null.");
+
+    WebClient client = new WebClient(version);
+
+    client.setRedirectEnabled(true);
+    client.setJavaScriptEnabled(true);
+
+    return client;
   }
 }

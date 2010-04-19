@@ -1,4 +1,4 @@
-package org.moyrax.javascript;
+package org.moyrax.maven;
 
 /**
  * This class provides the required information and flags to execute the
@@ -6,7 +6,7 @@ package org.moyrax.javascript;
  *
  * @author Matias Mirabelli <lumen.night@gmail.com>
  */
-public class TestContext {
+public class EnvironmentConfiguration {
   /**
    * File that contains the js-test-driver configuration. By default, it will
    * be jsTestDriver.conf.

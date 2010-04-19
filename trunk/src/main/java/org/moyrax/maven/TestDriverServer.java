@@ -1,12 +1,14 @@
-package org.moyrax.javascript;
+package org.moyrax.maven;
 
 import java.util.concurrent.Semaphore;
 
 import org.apache.commons.lang.Validate;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import com.google.jstestdriver.JsTestDriverServer;
+import org.mortbay.jetty.Server;
+import org.moyrax.server.ContextHandlerFactory;
+import org.moyrax.server.StaticContentServlet;
+import org.moyrax.server.WebContextHandler;
 
 /**
  * This class in the server which will capture the browsers in order to execute
@@ -22,12 +24,12 @@ public class TestDriverServer extends Thread {
   /**
    * Context used to initialize this testing server.
    */
-  private TestContext context;
+  private EnvironmentConfiguration context;
 
   /**
    * Semaphore which will wait for the server initialization.
    */
-  private Semaphore semaphore;
+  private static Semaphore semaphore;
 
   /**
    * If the server is started, it's will be set to <code>true</code>.
@@ -40,7 +42,7 @@ public class TestDriverServer extends Thread {
    * @param context Context information for the testing server. It cannot
    *    be null.
    */
-  public TestDriverServer(final TestContext context) {
+  public TestDriverServer(final EnvironmentConfiguration context) {
     Validate.notNull(context, "The context parameter cannot be null.");
 
     this.setName("QUnit Testing Server Thread");
@@ -49,13 +51,13 @@ public class TestDriverServer extends Thread {
   }
 
   /**
-   * Starts this server and causes the given object to wait until the server
+   * Starts this server and causes the given semaphore to wait until the server
    * be fully loaded.
    *
-   * @param semaphore Semaphore which will wait for the initialization.
+   * @param aSemaphore Semaphore which will wait for the initialization.
    */
-  public synchronized void start(final Semaphore semaphore) {
-    this.semaphore = semaphore;
+  public synchronized void start(final Semaphore aSemaphore) {
+    semaphore = aSemaphore;
 
     super.start();
   }
@@ -71,13 +73,27 @@ public class TestDriverServer extends Thread {
    * Runs the testing server.
    */
   public void run() {
-    JsTestDriverServer.main(context.getServerParameters());
+    try {
+      Server server = new Server(context.getServerPort());
+
+      ContextHandlerFactory.addServletMapping("/content/",
+          new StaticContentServlet());
+
+      server.setHandler(ContextHandlerFactory.getHandler(
+          WebContextHandler.class));
+
+      server.start();
+    } catch (Exception ex) {
+      throw new RuntimeException("Couldn't start the HTTP Server.", ex);
+    }
 
     logger.info("Testing Server started on port " + context.getServerPort());
 
     this.started = true;
 
-    this.semaphore.release();
+    if (semaphore != null) {
+      semaphore.release();
+    }
 
     while (this.started) {}
 
@@ -87,7 +103,7 @@ public class TestDriverServer extends Thread {
   /**
    * Returns the current testing context.
    */
-  public TestContext getContext() {
+  public EnvironmentConfiguration getContext() {
     return context;
   }
 }
