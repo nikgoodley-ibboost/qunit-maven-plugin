@@ -1,15 +1,19 @@
 <html>
   <body>
+    <img alt="test" src="test.jpg" />
     <div id="test">Hello</div>
 
     <script type="text/javascript">
-      include("/org/moyrax/javascript/lib/prototype.js");
+      window.onload = function () {
+        include("lib:/prototype.js");
 
-      print($("test").innerHTML);
+        print("Test print!");
+        print($("test").innerHTML);
 
-      $("test").update("World from HTML!!");
+        $("test").update("World from HTML!!");
 
-      print($("test").innerHTML);
+        print($("test").innerHTML);
+      };
     </script>
   </body>
 </html>
