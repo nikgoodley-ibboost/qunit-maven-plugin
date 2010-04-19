@@ -7,16 +7,17 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.sourceforge.htmlunit.corejs.javascript.Context;
+import net.sourceforge.htmlunit.corejs.javascript.Function;
+import net.sourceforge.htmlunit.corejs.javascript.JavaScriptException;
+import net.sourceforge.htmlunit.corejs.javascript.NativeObject;
+import net.sourceforge.htmlunit.corejs.javascript.Scriptable;
+
 import org.apache.commons.lang.Validate;
+import org.moyrax.javascript.shell.Global;
 import org.moyrax.resolver.ContextFileResolver;
 import org.moyrax.resolver.ResourceResolver;
 import org.moyrax.util.ScriptUtils;
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.Function;
-import org.mozilla.javascript.JavaScriptException;
-import org.mozilla.javascript.NativeObject;
-import org.mozilla.javascript.Scriptable;
-import org.mozilla.javascript.tools.shell.Global;
 
 /**
  * This class provides additional functions to the Rhino shell.
@@ -27,6 +28,7 @@ import org.mozilla.javascript.tools.shell.Global;
 public class Shell extends Global {
   /** Default id for serialization. */
   private static final long serialVersionUID = 1L;
+
 
   /**
    * Default protocol name for searching resources.
@@ -55,6 +57,7 @@ public class Shell extends Global {
    * @param arguments  Arguments passed to this method from the script.
    * @param thisObj Reference to the current javascript object.
    */
+  @JsFunction
   public static void include(final Context context, final Scriptable scope,
       final Object[] arguments, final Function thisObj) {
 
@@ -64,7 +67,8 @@ public class Shell extends Global {
     for (int i = 0, j = arguments.length; i < j; i++) {
       final String resourceUri = (String)arguments[i];
 
-      final Object result = findResolver(resourceUri).resolve(resourceUri);
+      final Object result = findResolver(resourceUri)
+          .resolve(resourceUri);
 
       if (result != null) {
         if (result.getClass().equals(File.class)) {
@@ -79,7 +83,7 @@ public class Shell extends Global {
     }
 
     if (files.size() > 0) {
-      load(context, scope, files.toArray(), thisObj);
+      ScriptUtils.run(context, scope, files.toArray(new String[] {}));
     }
 
     if (input.size() > 0) {
@@ -95,6 +99,7 @@ public class Shell extends Global {
    * @param arguments  Arguments passed to this method from the script.
    * @param thisObj Reference to the current javascript object.
    */
+  @JsFunction
   public static void includePage(final Context context, final Scriptable scope,
       final Object[] arguments, final Function thisObj) {
 
@@ -123,6 +128,14 @@ public class Shell extends Global {
       pageContext.setLogLevel(logLevel);
       pageContext.open();
     }
+  }
+
+  /**
+   * Returns the class name used in the hosts scripts.
+   */
+  @Override
+  public String getClassName() {
+    return "Shell";
   }
 
   /**
@@ -186,11 +199,6 @@ public class Shell extends Global {
       return;
     }
 
-    if (resolvers.containsKey(protocol)) {
-      throw new IllegalStateException("The protocol '" + protocol + "' is " +
-          "already handled by a resolver.");
-    }
-
     resolvers.put(protocol, resolver);
   }
 
@@ -209,8 +217,8 @@ public class Shell extends Global {
     if (uri.indexOf(":") == -1) {
       if (contextResolver == null) {
         /* Oops, I have nothing. */
-        throw new IllegalArgumentException("The context path was not " +
-            "initialized.");
+        throw new IllegalArgumentException("The context path is not "
+            + "initialized.");
       }
 
       return contextResolver;
@@ -233,8 +241,8 @@ public class Shell extends Global {
       }
 
       /* Indeed, I can't handle it. */
-      throw new IllegalArgumentException("The protocol '" + protocol + "' " +
-          "cannot be handled.");
+      throw new IllegalArgumentException("The protocol '" + protocol + "' "
+          + "cannot be handled.");
     }
 
     return resolvers.get(protocol);
