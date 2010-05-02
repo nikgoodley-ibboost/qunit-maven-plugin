@@ -179,6 +179,8 @@ public class QUnitPlugin extends AbstractMojo {
 
     env.setServerPort(port);
 
+    server = new TestDriverServer(env);
+
     server.start();
   }
 
