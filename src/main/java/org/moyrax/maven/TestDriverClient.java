@@ -10,7 +10,9 @@ import org.apache.commons.lang.Validate;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.moyrax.javascript.ConfigurableEngine;
+import org.moyrax.javascript.ContextClassLoader;
 import org.moyrax.javascript.ContextPathBuilder;
+import org.moyrax.javascript.ScriptComponentScanner;
 import org.moyrax.javascript.Shell;
 import org.moyrax.javascript.shell.Global;
 
@@ -61,6 +63,16 @@ public class TestDriverClient {
   private File configFile;
 
   /**
+   * List of packages that will be parsed to search for JavaScript components.
+   */
+  private String[] lookupPackages;
+
+  /**
+   * JavaScript engine used to execute the tests.
+   */
+  private ConfigurableEngine engine;
+
+  /**
    * Creates a new client which will be captured by the specified server.
    *
    * @param server Testing server. It cannot be null.
@@ -98,6 +110,16 @@ public class TestDriverClient {
    * Executes all configured tests.
    */
   public void runTests() {
+    ScriptComponentScanner scanner = new ScriptComponentScanner(
+        this.lookupPackages,
+        new ContextClassLoader(Thread.currentThread().getContextClassLoader()));
+
+    scanner.scan();
+
+    for (Class<?> clazz : scanner.getClasses()) {
+      engine.registerClass(clazz);
+    }
+
     if (this.context.getConfigFile() == null) {
       generateConfig();
 
@@ -142,6 +164,24 @@ public class TestDriverClient {
    */
   public String[] getExcludes() {
     return this.excludes;
+  }
+
+  /**
+   * Sets the list of packages patterns which will be used to search for
+   * JavaScript components. All the found classes will be added to the
+   * host-scripts global scope.
+   *
+   * @param thePackages List of package patterns.
+   */
+  public void setLookupPackages(final String[] thePackages) {
+    this.lookupPackages = thePackages;
+  }
+
+  /**
+   * Returns the list of packages used to lookup JavaScript components.
+   */
+  public String[] getLookupPackages() {
+    return this.includes;
   }
 
   /**
@@ -213,7 +253,7 @@ public class TestDriverClient {
    * @return Returns the created {@link ConfigurableEngine}.
    */
   private JavaScriptEngine createJavaScriptEngine() {
-    final ConfigurableEngine engine = new ConfigurableEngine(this.browser);
+    engine = new ConfigurableEngine(this.browser);
 
     engine.registerClass(Global.class);
     engine.registerClass(Shell.class);
