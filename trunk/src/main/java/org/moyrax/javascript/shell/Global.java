@@ -50,6 +50,8 @@ import java.io.Reader;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.HashMap;
+import java.util.Map;
 
 import net.sourceforge.htmlunit.corejs.javascript.Context;
 import net.sourceforge.htmlunit.corejs.javascript.ContextAction;
@@ -67,9 +69,9 @@ import net.sourceforge.htmlunit.corejs.javascript.Wrapper;
 import net.sourceforge.htmlunit.corejs.javascript.serialize.ScriptableInputStream;
 import net.sourceforge.htmlunit.corejs.javascript.serialize.ScriptableOutputStream;
 
-import org.moyrax.javascript.JsFunction;
+import org.moyrax.javascript.annotation.GlobalFunction;
+import org.moyrax.javascript.tool.ToolErrorReporter;
 import org.mozilla.javascript.ClassDefinitionException;
-import org.mozilla.javascript.tools.ToolErrorReporter;
 
 /**
  * This class provides for sharing functions across multiple threads. This is of
@@ -78,8 +80,15 @@ import org.mozilla.javascript.tools.ToolErrorReporter;
  * @author Norris Boyd
  */
 @SuppressWarnings( "all" )
+@org.moyrax.javascript.annotation.Script
 public class Global extends ImporterTopLevel {
   static final long serialVersionUID = 4029130780977538005L;
+
+  /**
+   * Keeps the whole list of scopes binded to this {@link ScriptableObject}.
+   */
+  private static final Map<String, Scriptable> scopes =
+      new HashMap<String, Scriptable>();
 
   NativeArray history;
   private InputStream inStream;
@@ -89,7 +98,27 @@ public class Global extends ImporterTopLevel {
   boolean initialized;
   private QuitAction quitAction;
 
+  private Scriptable wrappedScope;
+
   public Global() {}
+
+  public Global(final Scriptable aWrappedScope) {
+    this.wrappedScope = aWrappedScope;
+  }
+
+  /**
+   * Occurs when this {@link Scriptable} object is initialized.
+   *
+   * @param scope Scope that's being initialized.
+   */
+  public static void init(final Scriptable scope) {
+    if (!scopes.containsKey(scope.getClassName())) {
+      scopes.put(scope.getClassName(), new Global(scope));
+    } else {
+      throw new IllegalArgumentException("The scope is already registered: "
+          + scope.getClassName());
+    }
+  }
 
   /**
    * Set the action to call from quit().
@@ -137,7 +166,7 @@ public class Global extends ImporterTopLevel {
    *
    * This method is defined as a JavaScript function.
    */
-  @JsFunction
+  @GlobalFunction
   public static void help( Context cx, Scriptable thisObj, Object[] args, Function funObj ) {
     PrintStream out = getInstance( funObj ).getOut();
     out.println( ToolErrorReporter.getMessage( "msg.help" ) );
@@ -151,7 +180,7 @@ public class Global extends ImporterTopLevel {
    * arguments supplied to the JavaScript function.
    *
    */
-  @JsFunction
+  @GlobalFunction
   public static Object print( Context cx, Scriptable thisObj, Object[] args, Function funObj ) {
     PrintStream out = getInstance( funObj ).getOut();
     for ( int i = 0; i < args.length; i++ ) {
@@ -173,7 +202,7 @@ public class Global extends ImporterTopLevel {
    *
    * This method is defined as a JavaScript function.
    */
-  @JsFunction
+  @GlobalFunction
   public static void quit( Context cx, Scriptable thisObj, Object[] args, Function funObj ) {
     Global global = getInstance( funObj );
     if ( global.quitAction != null ) {
@@ -187,7 +216,7 @@ public class Global extends ImporterTopLevel {
    *
    * This method is defined as a JavaScript function.
    */
-  @JsFunction
+  @GlobalFunction
   public static double version( Context cx, Scriptable thisObj, Object[] args, Function funObj ) {
     double result = cx.getLanguageVersion();
     if ( args.length > 0 ) {
@@ -203,7 +232,7 @@ public class Global extends ImporterTopLevel {
    * This method is defined as a JavaScript function.
    *
    */
-  @JsFunction
+  @GlobalFunction
   public static void load( Context cx, Scriptable thisObj, Object[] args, Function funObj ) {
     for ( int i = 0; i < args.length; i++ ) {
       Main.processFile( cx, thisObj, Context.toString( args[ i ] ) );
@@ -225,7 +254,7 @@ public class Global extends ImporterTopLevel {
    *              exception in ScriptableObject.defineClass
    * @see org.mozilla.javascript.ScriptableObject#defineClass
    */
-  @JsFunction
+  @GlobalFunction
   public static void defineClass( Context cx, Scriptable thisObj, Object[] args, Function funObj ) throws IllegalAccessException, InstantiationException, InvocationTargetException {
     Class clazz = getClass( args );
     ScriptableObject.defineClass( thisObj, clazz );
@@ -245,7 +274,7 @@ public class Global extends ImporterTopLevel {
    *              execution of methods of the named class
    * @see org.mozilla.javascript.ScriptableObject#defineClass
    */
-  @JsFunction
+  @GlobalFunction
   public static void loadClass( Context cx, Scriptable thisObj, Object[] args, Function funObj ) throws IllegalAccessException, InstantiationException, InvocationTargetException {
     Class clazz = getClass( args );
     if ( !Script.class.isAssignableFrom( clazz ) ) { throw reportRuntimeError( "msg.must.implement.Script" ); }
@@ -270,7 +299,7 @@ public class Global extends ImporterTopLevel {
     }
   }
 
-  @JsFunction
+  @GlobalFunction
   public static void serialize( Context cx, Scriptable thisObj, Object[] args, Function funObj ) throws IOException {
     if ( args.length < 2 ) { throw Context.reportRuntimeError( "Expected an object to serialize and a filename to write "
             + "the serialization to" ); }
@@ -283,7 +312,7 @@ public class Global extends ImporterTopLevel {
     out.close();
   }
 
-  @JsFunction
+  @GlobalFunction
   public static Object deserialize( Context cx, Scriptable thisObj, Object[] args, Function funObj ) throws IOException, ClassNotFoundException {
     if ( args.length < 1 ) { throw Context.reportRuntimeError( "Expected a filename to read the serialization from" ); }
     String filename = Context.toString( args[ 0 ] );
@@ -301,7 +330,7 @@ public class Global extends ImporterTopLevel {
    * js> function g() { a = 7; } js> a = 3; 3 js> spawn(g)
    * Thread[Thread-1,5,main] js> a 3
    */
-  @JsFunction
+  @GlobalFunction
   public static Object spawn( Context cx, Scriptable thisObj, Object[] args, Function funObj ) {
     Scriptable scope = funObj.getParentScope();
     Runner runner;
@@ -336,7 +365,7 @@ public class Global extends ImporterTopLevel {
    * spawn(function() {o.f(5);}); Thread[Thread-0,5,main] entry js>
    * spawn(function() {o.f(5);}); Thread[Thread-1,5,main] js> exit entry exit
    */
-  @JsFunction
+  @GlobalFunction
   public static Object sync( Context cx, Scriptable thisObj, Object[] args, Function funObj ) {
     if ( args.length == 1 && args[ 0 ] instanceof Function ) {
       return new Synchronizer( (Function) args[ 0 ] );
@@ -381,7 +410,7 @@ public class Global extends ImporterTopLevel {
    * property.
    * </ul>
    */
-  @JsFunction
+  @GlobalFunction
   public static Object runCommand( Context cx, Scriptable thisObj, Object[] args, Function funObj ) throws IOException {
     int L = args.length;
     if ( L == 0 || ( L == 1 && args[ 0 ] instanceof Scriptable ) ) { throw reportRuntimeError( "msg.runCommand.bad.args" ); }
@@ -489,7 +518,7 @@ public class Global extends ImporterTopLevel {
   /**
    * The seal function seals all supplied arguments.
    */
-  @JsFunction
+  @GlobalFunction
   public static void seal( Context cx, Scriptable thisObj, Object[] args, Function funObj ) {
     for ( int i = 0; i != args.length; ++i ) {
       Object arg = args[ i ];
@@ -524,7 +553,7 @@ public class Global extends ImporterTopLevel {
    * The first form converts file's context to string using the default
    * character coding.
    */
-  @JsFunction
+  @GlobalFunction
   public static Object readFile( Context cx, Scriptable thisObj, Object[] args, Function funObj ) throws IOException {
     if ( args.length == 0 ) { throw reportRuntimeError( "msg.shell.readFile.bad.args" ); }
     String path = ScriptRuntime.toString( args[ 0 ] );
@@ -551,7 +580,7 @@ public class Global extends ImporterTopLevel {
    * The first form converts file's context to string using the default
    * charCoding.
    */
-  @JsFunction
+  @GlobalFunction
   public static Object readUrl( Context cx, Scriptable thisObj, Object[] args, Function funObj ) throws IOException {
     if ( args.length == 0 ) { throw reportRuntimeError( "msg.shell.readUrl.bad.args" ); }
     String url = ScriptRuntime.toString( args[ 0 ] );
@@ -566,7 +595,7 @@ public class Global extends ImporterTopLevel {
   /**
    * Convert the argumnet to int32 number.
    */
-  @JsFunction
+  @GlobalFunction
   public static Object toint32( Context cx, Scriptable thisObj, Object[] args, Function funObj ) {
     Object arg = ( args.length != 0 ? args[ 0 ] : Undefined.instance );
     if ( arg instanceof Integer )
@@ -603,14 +632,10 @@ public class Global extends ImporterTopLevel {
   }
 
   private static Global getInstance( Function function ) {
-    // TODO(mmirabelli): Find a way to retrieve the Global scope, since
-    // the function is binded to the Window scope. This method is used to
-    // retrieve the proper Global instance related to the function, and then
-    // get the output stream for writing (through the getOut() method).
-    Scriptable scope = function.getParentScope();
+    Scriptable scope = scopes.get(function.getParentScope().getClassName());
 
     if ( !( scope instanceof Global ) )
-      throw reportRuntimeError( "msg.bad.shell.function.scope",
+      throw reportRuntimeError( "msg.shell.bad.function.scope",
               String.valueOf( scope ) );
     return (Global) scope;
   }

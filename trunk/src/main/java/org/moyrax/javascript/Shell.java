@@ -14,6 +14,8 @@ import net.sourceforge.htmlunit.corejs.javascript.NativeObject;
 import net.sourceforge.htmlunit.corejs.javascript.Scriptable;
 
 import org.apache.commons.lang.Validate;
+import org.moyrax.javascript.annotation.GlobalFunction;
+import org.moyrax.javascript.annotation.Script;
 import org.moyrax.javascript.shell.Global;
 import org.moyrax.resolver.ContextFileResolver;
 import org.moyrax.resolver.ResourceResolver;
@@ -25,6 +27,7 @@ import org.moyrax.util.ScriptUtils;
  * @author Matias Mirabelli <lumen.night@gmail.com>
  * @since 0.50
  */
+@Script
 public class Shell extends Global {
   /** Default id for serialization. */
   private static final long serialVersionUID = 1L;
@@ -57,7 +60,7 @@ public class Shell extends Global {
    * @param arguments  Arguments passed to this method from the script.
    * @param thisObj Reference to the current javascript object.
    */
-  @JsFunction
+  @GlobalFunction
   public static void include(final Context context, final Scriptable scope,
       final Object[] arguments, final Function thisObj) {
 
@@ -99,7 +102,7 @@ public class Shell extends Global {
    * @param arguments  Arguments passed to this method from the script.
    * @param thisObj Reference to the current javascript object.
    */
-  @JsFunction
+  @GlobalFunction
   public static void includePage(final Context context, final Scriptable scope,
       final Object[] arguments, final Function thisObj) {
 
