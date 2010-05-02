@@ -29,8 +29,8 @@ public class ShellTest {
   @BeforeClass
   public static void beforeClass() throws Exception {
     shell = new Shell();
-    ScriptableObjectBean shellBean = new ScriptableObjectBean(Shell.class);
-    ScriptableObjectBean globalBean = new ScriptableObjectBean(Global.class);
+    ScriptComponent shellBean = new ScriptComponent(Shell.class);
+    ScriptComponent globalBean = new ScriptComponent(Global.class);
 
     context = HtmlUnitContextFactory.getGlobal().enterContext();
     context.setOptimizationLevel(-1);
@@ -40,10 +40,12 @@ public class ShellTest {
     Shell.setResolver("classpath", new ClassPathResolver());
 
     /* Adds the global functions to the scope. */
-    scope.defineFunctionProperties(shellBean.getFunctionNames(),
+    scope.defineFunctionProperties(
+        shellBean.getGlobalFunctionNames().toArray(new String[] {}),
         shellBean.getScriptableClass(), ScriptableObject.DONTENUM);
-    scope.defineFunctionProperties(globalBean.getFunctionNames(),
-            globalBean.getScriptableClass(), ScriptableObject.DONTENUM);
+    scope.defineFunctionProperties(
+        globalBean.getGlobalFunctionNames().toArray(new String[] {}),
+        globalBean.getScriptableClass(), ScriptableObject.DONTENUM);
   }
 
   @AfterClass

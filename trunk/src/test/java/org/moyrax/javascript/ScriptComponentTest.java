@@ -8,14 +8,15 @@ import net.sourceforge.htmlunit.corejs.javascript.ScriptableObject;
 import org.apache.commons.lang.ArrayUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.moyrax.javascript.annotation.GlobalFunction;
 import org.springframework.util.Assert;
 
 /**
- * Tests the {@link ScriptableObjectBean} class.
+ * Tests the {@link ScriptComponent} class.
  *
  * @author Matias Mirabelli <lumen.night@gmail.com>
  */
-public class ScriptableObjectBeanTest {
+public class ScriptComponentTest {
   @SuppressWarnings("serial")
   private static class TestScriptableObject extends ScriptableObject {
     /**
@@ -26,7 +27,8 @@ public class ScriptableObjectBeanTest {
      * @param arguments  Arguments passed to this method from the script.
      * @param thisObj Reference to the current javascript object.
      */
-    @JsFunction
+    @SuppressWarnings("unused")
+    @GlobalFunction
     public static void testProc(final Context context, final Scriptable scope,
         final Object[] arguments, final Function thisObj) {
       assertInternal("testProc is visible!");
@@ -40,6 +42,7 @@ public class ScriptableObjectBeanTest {
      * @param arguments  Arguments passed to this method from the script.
      * @param thisObj Reference to the current javascript object.
      */
+    @SuppressWarnings("unused")
     public static void testHiddenProc(final Context context,
         final Scriptable scope, final Object[] arguments,
         final Function thisObj) {
@@ -56,21 +59,22 @@ public class ScriptableObjectBeanTest {
   };
 
   /**
-   * {@link ScriptableObjectBean} for testing.
+   * {@link ScriptComponent} for testing.
    */
-  private ScriptableObjectBean bean;
+  private ScriptComponent bean;
 
   /**
    * Initializes each test.
    */
   @Before
   public void setUp() {
-    bean = new ScriptableObjectBean(TestScriptableObject.class);
+    bean = new ScriptComponent(TestScriptableObject.class);
   }
 
   @Test
   public void testGetGlobalFunctionNames() {
-    String[] functionNames = bean.getFunctionNames();
+    String[] functionNames = bean.getGlobalFunctionNames()
+        .toArray(new String[] {});
 
     Assert.isTrue(ArrayUtils.contains(functionNames, "testProc"));
     Assert.isTrue(!ArrayUtils.contains(functionNames, "testHiddenProc"));
