@@ -15,6 +15,7 @@ import net.sourceforge.htmlunit.corejs.javascript.Scriptable;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.moyrax.javascript.annotation.Script;
 
 /**
  * This class holds all purpose methods to handle and to proccess javascript
@@ -185,5 +186,20 @@ public class ScriptUtils {
     } catch (IOException ex) {
       throw new JavaScriptException("Error reading script: " + name, name, 0);
     }
+  }
+
+  /**
+   * Determines if a class can be exported to the client application as a global
+   * component.
+   *
+   * @param klass Class to check. It cannot be null.
+   *
+   * @return If the class is designed to be exported, it returns
+   *  <code>true</code>, otherwise it returns <code>false</code>.
+   */
+  public static boolean isExportable(final Class<?> klass) {
+    Validate.notNull(klass, "The class cannot be null.");
+
+    return klass.isAnnotationPresent(Script.class);
   }
 }
