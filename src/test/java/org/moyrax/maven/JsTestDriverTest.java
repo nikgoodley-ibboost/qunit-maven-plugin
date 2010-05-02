@@ -2,7 +2,6 @@ package org.moyrax.maven;
 
 import java.util.concurrent.Semaphore;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.moyrax.javascript.Shell;
 import org.moyrax.resolver.ClassPathResolver;
@@ -16,7 +15,6 @@ public class JsTestDriverTest {
   private Semaphore semaphore = new Semaphore(0, true);
 
   @Test
-  @Ignore
   public void testApplication() throws Exception {
     final TestDriverServer server = new TestDriverServer(context);
     final TestDriverClient testDriverClient = new TestDriverClient(
@@ -24,7 +22,6 @@ public class JsTestDriverTest {
 
     context.setTestOutputDirectory("test/");
 
-    /* Starts the server. */
     server.start(semaphore);
 
     this.semaphore.acquire();
@@ -34,10 +31,14 @@ public class JsTestDriverTest {
       "test/src-test/*.js"
     }, new String[] {});
 
+
+    testDriverClient.setLookupPackages(new String[] {
+        "classpath:/org/moyrax/javascript/common/**"
+    });
+
     Shell.setResolver("lib", new LibraryResolver("/org/moyrax/javascript/lib"));
     Shell.setResolver("classpath", new ClassPathResolver());
 
-    /* Run the configured tests. */
     try {
       // TODO(mmirabelli): Remove the Ignore annotation when the TODO's defined
       // in the classes TestDriverClient and Global will be resolved.
@@ -46,7 +47,6 @@ public class JsTestDriverTest {
       throw new RuntimeException("Error initializing tests.", ex);
     }
 
-    /* Stops the server and waits for it until finalizes. */
     server.stopServer();
     server.join();
 
