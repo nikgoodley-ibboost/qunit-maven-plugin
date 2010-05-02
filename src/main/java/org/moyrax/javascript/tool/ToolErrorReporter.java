@@ -94,7 +94,7 @@ public class ToolErrorReporter implements ErrorReporter {
 
        // ResourceBundle does cacheing.
        ResourceBundle rb = ResourceBundle.getBundle
-           ("org.mozilla.javascript.tools.resources.Messages", locale);
+           ("org.moyrax.javascript.tool.Messages", locale);
 
        String formatString;
        try {
