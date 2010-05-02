@@ -7,6 +7,10 @@
       window.onload = function () {
         include("lib:/prototype.js");
 
+        var obj = new SomeScriptable();
+
+        obj.testProc();
+
         print("Test print!");
         print($("test").innerHTML);
 

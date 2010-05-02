@@ -27,7 +27,7 @@ public class ConfigurableEngine extends JavaScriptEngine {
   /**
    * List of beans registered in the executions scope.
    */
-  private List<ScriptableObjectBean> scriptableBeans;
+  private List<ScriptComponent> scriptableBeans;
 
   /**
    * Creates a new {@link ConfigurableEngine} and sets the enclosing
@@ -71,14 +71,16 @@ public class ConfigurableEngine extends JavaScriptEngine {
    * Registers a new {@link ScriptableObject} class that will be available in
    * the execution scopes created by this engine.
    *
-   * @param klass Class to register in all scopes.
+   * @param klass Class to register in all scopes. It cannot be null.
    */
-  public void registerClass(final Class<? extends ScriptableObject> klass) {
+  public void registerClass(final Class<?> klass) {
+    Validate.notNull(klass, "The class cannot be null.");
+
     if (scriptableBeans == null) {
-      scriptableBeans = new ArrayList<ScriptableObjectBean>();
+      scriptableBeans = new ArrayList<ScriptComponent>();
     }
 
-    scriptableBeans.add(new ScriptableObjectBean(klass));
+    scriptableBeans.add(new ScriptComponent(klass));
   }
 
   /**
@@ -87,20 +89,25 @@ public class ConfigurableEngine extends JavaScriptEngine {
    *
    * @param scope Scope to initialize. It cannot be null.
    */
+  @SuppressWarnings("unchecked")
   private void initializeScope(final ScriptableObject scope) {
     Validate.notNull(scope, "The scope cannot be null.");
 
     /* Registers all global functions. */
-    for (ScriptableObjectBean bean : scriptableBeans) {
+    for (ScriptComponent bean : scriptableBeans) {
+      String[] globalFunctions = bean.getGlobalFunctionNames().toArray(
+          new String[] {});
+
       /* Adds the global functions to the scope. */
-      scope.defineFunctionProperties(bean.getFunctionNames(),
+      scope.defineFunctionProperties(globalFunctions,
           bean.getScriptableClass(), ScriptableObject.DONTENUM);
     }
 
     try {
       /* Tries to register the defined classes. */
-      for (ScriptableObjectBean bean : scriptableBeans) {
-        ScriptableObject.defineClass(scope, bean.getScriptableClass());
+      for (ScriptComponent bean : scriptableBeans) {
+        ScriptableObject.defineClass(scope,
+            (Class<? extends ScriptableObject>)bean.getScriptableClass());
       }
     } catch (Exception ex) {
       throw new JavaScriptEngineException("Error initializing the scope.", ex);
