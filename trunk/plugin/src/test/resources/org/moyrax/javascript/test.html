@@ -4,20 +4,18 @@
     <div id="test">Hello</div>
 
     <script type="text/javascript">
-      window.onload = function () {
-        include("lib:/prototype.js");
+        init();
+        module("core");
+          test("test1", function() {
+            expect(3);
 
-        var obj = new SomeScriptable();
-
-        obj.testProc();
-
-        print("Test print!");
-        print($("test").innerHTML);
-
-        $("test").update("World from HTML!!");
-
-        print($("test").innerHTML);
-      };
+            ok( true, "test running before jquery loads");
+            ok( true, "test running before jquery loads");
+          });
+  
+          test("test2", function() {
+            ok( true, "test running after jquery loads");
+          });
     </script>
   </body>
 </html>

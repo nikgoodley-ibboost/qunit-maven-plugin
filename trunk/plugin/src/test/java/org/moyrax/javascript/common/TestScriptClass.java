@@ -9,8 +9,8 @@ import org.moyrax.javascript.annotation.Script;
 public class TestScriptClass {
 
   @Function
-  public void testProc(final String msg, int any) {
-    System.out.println(msg + ": " + any);
+  public String ping(final String msg, int any) {
+    return "PONG[" + any + "]: " + msg;
   }
 
   public String getClassName() {

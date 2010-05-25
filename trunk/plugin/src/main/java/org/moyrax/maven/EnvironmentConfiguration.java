@@ -3,6 +3,7 @@ package org.moyrax.maven;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.Validate;
 import org.moyrax.javascript.ContextClassLoader;
 
@@ -39,6 +40,21 @@ public class EnvironmentConfiguration {
    * {@link ClassLoader} used to lookup for exportable resources.
    */
   private ContextClassLoader classLoader;
+
+  /**
+   * List of included testing resources to be executed.
+   */
+  private String[] includes;
+
+  /**
+   * List of excluded testing resources to be executed.
+   */
+  private String[] excludes;
+
+  /**
+   * List of packages that will be parsed to search for JavaScript components.
+   */
+  private String[] lookupPackages;
 
   /**
    * Returns the list of parameters configured in this context in the format
@@ -141,11 +157,70 @@ public class EnvironmentConfiguration {
   }
 
   /**
+   * Sets the list of patterns to locate testing resources. All resources that
+   * matches the patterns will be executed. It will be used if no configuration
+   * file was found.
+   *
+   * @param theBaseDirectory Directory in which the resources are located.
+   * @param theIncludes List of included test resources.
+   * @param theExcludes List of excluded test resources.
+   */
+  public void setFiles(final String theBaseDirectory,
+      final String[] theIncludes, final String[] theExcludes) {
+
+    this.includes = theIncludes;
+    this.excludes = theExcludes;
+
+    ContextPathBuilder.addDefinition(theBaseDirectory, theIncludes,
+        theExcludes);
+  }
+
+
+  /**
+   * Returns the current list of patterns to locate testing resources.
+   */
+  public String[] getIncludes() {
+    return this.includes;
+  }
+
+  /**
+   * Returns the list of patterns to exclude from the tests execution.
+   */
+  public String[] getExcludes() {
+    return this.excludes;
+  }
+
+  /**
+   * Sets the list of packages patterns which will be used to search for
+   * JavaScript components. All the found classes will be added to the
+   * host-scripts global scope.
+   *
+   * @param thePackages List of package patterns.
+   */
+  public void setLookupPackages(final String[] thePackages) {
+    this.lookupPackages = thePackages;
+
+    this.lookupPackages = (String[])ArrayUtils.add(this.lookupPackages,
+        "classpath:/org/moyrax/javascript/qunit/**");
+  }
+
+  /**
+   * Returns the list of packages used to lookup JavaScript components.
+   */
+  public String[] getLookupPackages() {
+    return this.lookupPackages;
+  }
+
+  /**
    * Gets the base path of the project that is using the plugin.
    *
    * @return Returns the project's base path.
    */
   public URL getProjectBasePath() {
+    if (projectBasePath == null) {
+      throw new IllegalStateException("The project base path is not defined.");
+    }
+
     return projectBasePath;
   }
 
@@ -178,7 +253,8 @@ public class EnvironmentConfiguration {
                 "classes/")
         };
 
-        classLoader = new ContextClassLoader(urls);
+        classLoader = new ContextClassLoader(urls,
+            this.getClass().getClassLoader());
       }
 
       return classLoader;

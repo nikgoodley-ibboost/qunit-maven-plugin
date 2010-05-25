@@ -27,6 +27,12 @@
       <version>1.2</version>
     </dependency>
 
+    <dependency>
+      <groupId>surefire</groupId>
+      <artifactId>surefire</artifactId>
+      <version>1.4</version>
+    </dependency>
+
     <!-- Rhino JavaScript interpreter -->
     <dependency>
       <groupId>rhino</groupId>

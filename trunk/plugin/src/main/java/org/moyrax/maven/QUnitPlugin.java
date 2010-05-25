@@ -2,10 +2,8 @@ package org.moyrax.maven;
 
 import java.io.File;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Semaphore;
 
 import net.sourceforge.htmlunit.corejs.javascript.Context;
 import net.sourceforge.htmlunit.corejs.javascript.Scriptable;
@@ -76,39 +74,21 @@ public class QUnitPlugin extends AbstractMojo {
   /**
    * Testing server.
    */
-  private static TestDriverServer server;
+  private static TestingServer server;
 
   /**
    * Testing client.
    */
-  private static TestDriverClient client;
+  private static TestingClient client;
 
   /**
    * Executes this plugin when the build reached the defined phase and goal.
    */
   public void execute() throws MojoExecutionException {
-    initServer();
-    initClient();
+    initEnvironment();
+    loadContextResources();
 
     client.runTests();
-
-    // TODO(mmirabelli): The next code no longer works. Please see the
-    // JsTestDriverTest class for more information in order to fix this method.
-    final String[] testFiles = fileSetManager.getIncludedFiles(testResources);
-    final String directory = testResources.getDirectory();
-
-    this.context = HtmlUnitContextFactory.getGlobal().enterContext();
-    this.scope = this.context.initStandardObjects();
-
-    ContextPathBuilder.build(contextPath);
-
-    this.loadContextResources();
-
-    for (int i = 0, j = testFiles.length; i < j; i++) {
-      final File file = new File(directory + "/" + testFiles[i]);
-
-      ScriptUtils.run(context, scope, file);
-    }
   }
 
   /**
@@ -160,10 +140,8 @@ public class QUnitPlugin extends AbstractMojo {
 
   /**
    * Initializes the required resources for the test environment.
-   *
-   * @throws MojoExecutionException
    */
-  private void loadContextResources() throws MojoExecutionException {
+  private void loadContextResources() {
     final String[] dependencies = new String[] {
       /* QUnit testing framework. */
       "org/moyrax/javascript/lib/qunit.js",
@@ -174,14 +152,14 @@ public class QUnitPlugin extends AbstractMojo {
     };
 
     for (int i = 0; i < dependencies.length; i++) {
-      ScriptUtils.run(context, scope, dependencies[i]);
+      client.addGlobalResource(dependencies[i]);
     }
   }
 
   /**
    * Initializes the environment configuration and starts the testing server.
    */
-  private void initServer() {
+  private void initEnvironment() {
     if (server != null) {
       return;
     }
@@ -190,33 +168,26 @@ public class QUnitPlugin extends AbstractMojo {
 
     try {
       env.setServerPort(port);
+      env.setFiles(testResources.getDirectory(),
+          fileSetManager.getIncludedFiles(testResources),
+          fileSetManager.getExcludedFiles(testResources));
+
+      for (Entry entry : contextPath) {
+        // TODO(mmirabelli): append instead of replace the lookup packages.
+        env.setLookupPackages(entry.components.toArray(new String[] {}));
+      }
+
       env.setProjectBasePath(projectBasePath.toURI().toURL());
     } catch (MalformedURLException e) {
       throw new RuntimeException("Cannot retrieve the project build "
           + "directory.");
     }
 
-    server = new TestDriverServer(env);
+    ContextPathBuilder.build();
 
+    server = new TestingServer(env);
     server.start();
-  }
 
-  /**
-   * Initializes the testing client.
-   */
-  private void initClient() {
-    if (server == null) {
-      throw new IllegalStateException("The server is not initialized.");
-    }
-
-    client = new TestDriverClient(server, BrowserVersion.FIREFOX_3);
-
-    client.setFiles(testResources.getDirectory(),
-        fileSetManager.getIncludedFiles(testResources),
-        fileSetManager.getExcludedFiles(testResources));
-
-    for (Entry entry : contextPath) {
-      client.setLookupPackages(entry.components.toArray(new String[] {}));
-    }
+    client = new TestingClient(server, BrowserVersion.FIREFOX_3);
   }
 }

@@ -1,11 +1,8 @@
 package org.moyrax.maven;
 
-import java.io.File;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -27,10 +24,10 @@ import com.gargoylesoftware.htmlunit.javascript.JavaScriptEngine;
  * @author Matias Mirabelli <lumen.night@gmail.com>
  * @since 1.2
  */
-public class TestDriverClient {
+public class TestingClient {
   /** Default logger for this class. */
   @SuppressWarnings("unused")
-  private static final Log logger = LogFactory.getLog(TestDriverClient.class);
+  private static final Log logger = LogFactory.getLog(TestingClient.class);
 
   /**
    * Browser which will be connected to the testing server.
@@ -40,32 +37,12 @@ public class TestDriverClient {
   /**
    * Testing server used to execute the configured tests.
    */
-  private TestDriverServer server;
+  private TestingServer server;
 
   /**
    * Context configuration for this client.
    */
   private EnvironmentConfiguration context;
-
-  /**
-   * List of included testing resources to be executed.
-   */
-  private String[] includes;
-
-  /**
-   * List of excluded testing resources to be executed.
-   */
-  private String[] excludes;
-
-  /**
-   * Configuration file.
-   */
-  private File configFile;
-
-  /**
-   * List of packages that will be parsed to search for JavaScript components.
-   */
-  private String[] lookupPackages;
 
   /**
    * JavaScript engine used to execute the tests.
@@ -77,7 +54,7 @@ public class TestDriverClient {
    *
    * @param server Testing server. It cannot be null.
    */
-  public TestDriverClient(final TestDriverServer server) {
+  public TestingClient(final TestingServer server) {
     Validate.notNull(server, "The server parameter cannot be null.");
 
     this.server = server;
@@ -92,12 +69,13 @@ public class TestDriverClient {
    * and emulates the specified browser version.
    *
    * @param server Testing server. It cannot be null.
-   * @param version Browser which this instance will emulate.
+   * @param version Browser which this instance will emulate. It cannot be null.
    */
-  public TestDriverClient(final TestDriverServer server,
+  public TestingClient(final TestingServer server,
       final BrowserVersion version) {
 
     Validate.notNull(server, "The server parameter cannot be null.");
+    Validate.notNull(version, "The browser version cannot be null.");
 
     this.server = server;
     this.context = this.server.getContext();
@@ -116,110 +94,22 @@ public class TestDriverClient {
       
     }
 
-    if (this.context.getConfigFile() == null) {
-      generateConfig();
-
-      this.context.setConfigFile(this.configFile.getName());
-    }
-
-    ContextPathBuilder.build();
-
     String resource = "classpath:/org/moyrax/javascript/test.html";
 
     browser.openWindow(this.buildResourceUrl(resource), "Test");
-
-    this.configFile.delete();
   }
 
   /**
-   * Sets the list of patterns to locate testing resources. All resources that
-   * matches the patterns will be executed. It will be used if no configuration
-   * file was found.
+   * Adds a new resource which will be registered in the Window scope. It's
+   * useful to initialize the client environment before executing the tests.
    *
-   * @param theBaseDirectory Directory in which the resources are located.
-   * @param theIncludes List of included test resources.
-   * @param theExcludes List of excluded test resources.
+   * @param classPath Resource located in the classpath. It cannot be null or
+   *    empty.
    */
-  public void setFiles(final String theBaseDirectory,
-      final String[] theIncludes, final String[] theExcludes) {
+  public void addGlobalResource(final String classPath) {
+    Validate.notEmpty(classPath, "The resource classpath cannot be null.");
 
-    this.includes = theIncludes;
-    this.excludes = theExcludes;
-
-    ContextPathBuilder.addDefinition(theBaseDirectory, theIncludes,
-        theExcludes);
-  }
-
-  /**
-   * Returns the current list of patterns to locate testing resources.
-   */
-  public String[] getIncludes() {
-    return this.includes;
-  }
-
-  /**
-   * Returns the list of patterns to exclude from the tests execution.
-   */
-  public String[] getExcludes() {
-    return this.excludes;
-  }
-
-  /**
-   * Sets the list of packages patterns which will be used to search for
-   * JavaScript components. All the found classes will be added to the
-   * host-scripts global scope.
-   *
-   * @param thePackages List of package patterns.
-   */
-  public void setLookupPackages(final String[] thePackages) {
-    this.lookupPackages = thePackages;
-  }
-
-  /**
-   * Returns the list of packages used to lookup JavaScript components.
-   */
-  public String[] getLookupPackages() {
-    return this.includes;
-  }
-
-  /**
-   * Creates a configuration file and saves it in the current context.
-   */
-  private void generateConfig() {
-    StringBuilder builder = new StringBuilder();
-
-    if (this.includes != null) {
-      builder.append("load:\n");
-      builder.append(formatConfigList(this.includes));
-    }
-
-    if (this.excludes != null && this.excludes.length > 0) {
-      builder.append("exclude:\n");
-      builder.append(formatConfigList(this.excludes));
-    }
-
-    try {
-      this.configFile = new File("qunit-tests.conf");
-
-      FileUtils.writeStringToFile(this.configFile, builder.toString());
-    } catch (IOException e) {
-      throw new IllegalArgumentException("Can't write the configuration file.");
-    }
-  }
-
-  /**
-   * Returns a String with the a format that can be readed by the server.
-   *
-   * @param list List to be converted.
-   */
-  private String formatConfigList(final String[] list) {
-    String result = "";
-
-    for (int i = 0; i < list.length; i++) {
-      result += "  - " + list[i] + "\n";
-    }
-
-    return result;
+    engine.addGlobalResource(classPath);
   }
 
   /**
@@ -299,15 +189,13 @@ public class TestDriverClient {
    * available in the client-side scripts.
    */
   private void loadClientComponents() throws MalformedURLException {
-    Thread.currentThread().setContextClassLoader(context.getClassLoader());
-
     ScriptComponentScanner scanner = new ScriptComponentScanner(
-        this.lookupPackages, context.getClassLoader());
+        context.getLookupPackages(), context.getClassLoader());
 
     scanner.scan();
 
     for (Class<?> clazz : scanner.getClasses()) {
-      engine.registerClass(clazz);
+      engine.registerClass(clazz, this.context.getClassLoader());
     }
   }
 }
