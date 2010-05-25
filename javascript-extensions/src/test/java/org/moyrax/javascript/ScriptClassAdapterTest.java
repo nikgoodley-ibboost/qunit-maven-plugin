@@ -3,6 +3,8 @@ package org.moyrax.javascript;
 import java.io.IOException;
 import java.net.URL;
 
+import net.sourceforge.htmlunit.corejs.javascript.ScriptableObject;
+
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -18,7 +20,7 @@ import org.springframework.util.Assert;
  */
 public class ScriptClassAdapterTest {
   @SuppressWarnings("unused")
-  @Script
+  @Script(name = "Foo", implementation = ScriptableObject.class)
   private static class TestPrivateScriptWithPublicConstructor {
     public TestPrivateScriptWithPublicConstructor() {}
 
