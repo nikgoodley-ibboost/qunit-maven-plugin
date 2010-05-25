@@ -17,9 +17,9 @@ import org.moyrax.server.WebContextHandler;
  * @author Matias Mirabelli <lumen.night@gmail.com>
  * @since 1.2
  */
-public class TestDriverServer extends Thread {
+public class TestingServer extends Thread {
   /** Default logger for this class. */
-  private static final Log logger = LogFactory.getLog(TestDriverServer.class);
+  private static final Log logger = LogFactory.getLog(TestingServer.class);
 
   /**
    * Context used to initialize this testing server.
@@ -42,7 +42,7 @@ public class TestDriverServer extends Thread {
    * @param context Context information for the testing server. It cannot
    *    be null.
    */
-  public TestDriverServer(final EnvironmentConfiguration context) {
+  public TestingServer(final EnvironmentConfiguration context) {
     Validate.notNull(context, "The context parameter cannot be null.");
 
     this.setName("QUnit Testing Server Thread");

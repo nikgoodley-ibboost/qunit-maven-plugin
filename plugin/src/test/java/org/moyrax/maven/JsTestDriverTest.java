@@ -1,5 +1,6 @@
 package org.moyrax.maven;
 
+import java.io.File;
 import java.util.concurrent.Semaphore;
 
 import org.junit.Test;
@@ -16,40 +17,54 @@ public class JsTestDriverTest {
 
   @Test
   public void testApplication() throws Exception {
-    final TestDriverServer server = new TestDriverServer(context);
-    final TestDriverClient testDriverClient = new TestDriverClient(
+    final TestingServer server = new TestingServer(context);
+    final TestingClient testDriverClient = new TestingClient(
         server, BrowserVersion.FIREFOX_3);
 
     context.setTestOutputDirectory("test/");
+    context.setProjectBasePath(new File(".").toURI().toURL());
 
     server.start(semaphore);
 
     this.semaphore.acquire();
 
-    testDriverClient.setFiles("", new String[] {
+    context.setFiles("", new String[] {
       "test/src/*.js",
       "test/src-test/*.js"
     }, new String[] {});
 
-
-    testDriverClient.setLookupPackages(new String[] {
+    context.setLookupPackages(new String[] {
         "classpath:/org/moyrax/javascript/common/**"
     });
 
     Shell.setResolver("lib", new LibraryResolver("/org/moyrax/javascript/lib"));
     Shell.setResolver("classpath", new ClassPathResolver());
 
-    try {
-      // TODO(mmirabelli): Remove the Ignore annotation when the TODO's defined
-      // in the classes TestDriverClient and Global will be resolved.
-      testDriverClient.runTests();
-    } catch(Exception ex) {
-      throw new RuntimeException("Error executing tests.", ex);
-    }
+    loadContextResources(testDriverClient);
+
+    testDriverClient.runTests();
 
     server.stopServer();
     server.join();
 
     System.out.println("Test finished.");
+  }
+
+  /**
+   * Initializes the required resources for the test environment.
+   */
+  private void loadContextResources(final TestingClient client) {
+    final String[] dependencies = new String[] {
+      /* QUnit testing framework. */
+      "org/moyrax/javascript/lib/qunit.js",
+      /* QUnit plugin related objects. */
+      "org/moyrax/javascript/lib/qunit-objects.js",
+      /* QUnit plugin test handler. */
+      "org/moyrax/javascript/lib/qunit-plugin.js"
+    };
+
+    for (int i = 0; i < dependencies.length; i++) {
+      client.addGlobalResource(dependencies[i]);
+    }
   }
 }
