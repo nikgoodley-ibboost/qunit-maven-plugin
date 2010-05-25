@@ -75,7 +75,7 @@ public class ShellTest {
   @Test
   public void testIncludeResource() throws Exception {
     final String[] includes = new String[] {
-      "qunit-objects.js"
+      "env.js"
     };
 
     final File basePath = new File(
