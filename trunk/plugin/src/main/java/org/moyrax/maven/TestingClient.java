@@ -94,9 +94,14 @@ public class TestingClient {
       
     }
 
-    String resource = "classpath:/org/moyrax/javascript/test.html";
+    String[] includes = context.getIncludes();
+    String basePath = context.getBaseDirectory();
 
-    browser.openWindow(this.buildResourceUrl(resource), "Test");
+    for (String include : includes) {
+      String resource = basePath + include;
+
+      browser.openWindow(this.buildResourceUrl(resource), "Test");
+    }
   }
 
   /**

@@ -1,5 +1,6 @@
 package org.moyrax.maven;
 
+import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -50,6 +51,11 @@ public class EnvironmentConfiguration {
    * List of excluded testing resources to be executed.
    */
   private String[] excludes;
+
+  /**
+   * Base directory where the test resources are located.
+   */
+  private String baseDirectory;
 
   /**
    * List of packages that will be parsed to search for JavaScript components.
@@ -168,13 +174,10 @@ public class EnvironmentConfiguration {
   public void setFiles(final String theBaseDirectory,
       final String[] theIncludes, final String[] theExcludes) {
 
+    this.baseDirectory = theBaseDirectory;
     this.includes = theIncludes;
     this.excludes = theExcludes;
-
-    ContextPathBuilder.addDefinition(theBaseDirectory, theIncludes,
-        theExcludes);
   }
-
 
   /**
    * Returns the current list of patterns to locate testing resources.
@@ -188,6 +191,17 @@ public class EnvironmentConfiguration {
    */
   public String[] getExcludes() {
     return this.excludes;
+  }
+
+  /**
+   * Returns the directory where the test resources are located.
+   */
+  public String getBaseDirectory() {
+    if (!baseDirectory.endsWith(File.separator)) {
+      baseDirectory += File.separator;
+    }
+
+    return baseDirectory;
   }
 
   /**

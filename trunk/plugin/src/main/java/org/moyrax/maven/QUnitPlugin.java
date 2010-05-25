@@ -5,19 +5,13 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.sourceforge.htmlunit.corejs.javascript.Context;
-import net.sourceforge.htmlunit.corejs.javascript.Scriptable;
-
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
-import org.moyrax.util.ScriptUtils;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
-import com.gargoylesoftware.htmlunit.javascript.HtmlUnitContextFactory;
 
 /**
  * Goal which touches a timestamp file.
@@ -43,6 +37,13 @@ public class QUnitPlugin extends AbstractMojo {
   private List<Entry> contextPath = new ArrayList<Entry>();
 
   /**
+   * List of classpath urls in which lookup for exportable Java classes.
+   *
+   * @parameter
+   */
+  public List<String> components = new ArrayList<String>();
+
+  /**
    * Port in which the testing server will be started. Default is 3137.
    *
    * @parameter default-value="3137"
@@ -55,16 +56,6 @@ public class QUnitPlugin extends AbstractMojo {
    * @parameter expression="${project.build.directory}" default-value="${project.build.directory}"
    */
   private File projectBasePath;
-
-  /**
-   * Global engine context.
-   */
-  private Context context;
-
-  /**
-   * Shared scope.
-   */
-  private Scriptable scope;
 
   /**
    * Object to ask the files specified in the plugin configuration.
@@ -92,50 +83,64 @@ public class QUnitPlugin extends AbstractMojo {
   }
 
   /**
-   * Executes the specified file as a QUnit test.
+   * Sets the project's base path.
    *
-   * @param scriptFile  File to be executed as the test. It cannot be null.
-   *
-   * @throws MojoExecutionException
+   * @param basePath Base path. It cannot be null or empty.
    */
-  public void execute(final File scriptFile) throws MojoExecutionException {
-    Validate.notNull(scriptFile, "scriptFile cannot be null.");
+  public void setProjectBasePath(final String basePath) {
+    Validate.notEmpty(basePath, "The base path cannot be null or empty.");
 
-    this.context = HtmlUnitContextFactory.getGlobal().enterContext();
-    this.scope = this.context.initStandardObjects();
+    projectBasePath = new File(basePath);
 
-    this.loadContextResources();
-
-    ScriptUtils.run(context, scope, scriptFile);
+    Validate.isTrue(projectBasePath.exists() &&
+        projectBasePath.isDirectory(), "The base path is not a valid "
+        + "directory.");
   }
 
   /**
-   * Executes the specified resource from the classpath.
+   * Sets the {@link FileSet} which contains the rules to retrieve the testing
+   * files.
    *
-   * @param classPath Classpath resource to be executed as QUnit test. It cannot
-   *    be null or empty.
-   *
-   * @throws MojoExecutionException
+   * @param theResources Test resources. It cannot be null.
    */
-  public void execute(final String classPath) throws MojoExecutionException {
-    Validate.notEmpty(classPath, "classPath cannot be null or empty.");
+  public void setTestResources(final FileSet theResources) {
+    Validate.notNull(theResources, "The resources cannot be null.");
 
-    this.context = HtmlUnitContextFactory.getGlobal().enterContext();
-    this.scope = this.context.initStandardObjects();
+    testResources = theResources;
+  }
 
-    this.loadContextResources();
+  /**
+   * Adds a new entry to the context path.
+   *
+   * @param entry Entry to add. It cannot be null.
+   */
+  public void addContextPath(final Entry entry) {
+    Validate.notNull(entry, "The entry cannot be null.");
 
-    String resourcePath = classPath;
+    contextPath.add(entry);
+  }
 
-    if (classPath.startsWith("classpath:/")) {
-      resourcePath = StringUtils.substringAfter(classPath, "classpath:/");
-    }
+  /**
+   * Adds a new search path to scan for JavaScript components.
+   *
+   * @param classPath Classpath to search for resources. It cannot be null or
+   *    empty.
+   */
+  public void addComponentSearchPath(final String classPath) {
+    Validate.notEmpty(classPath, "The class path cannot be null or empty.");
 
-    if (resourcePath.startsWith("/")) {
-      resourcePath = StringUtils.substringAfter(resourcePath, "/");
-    }
+    components.add(classPath);
+  }
 
-    ScriptUtils.run(context, scope, resourcePath);
+  /**
+   * Sets the testing server port.
+   *
+   * @param aPort The testing server port. It cannot be null.
+   */
+  public void setServerPort(Integer aPort) {
+    Validate.notNull(aPort, "The port cannot be null.");
+
+    port = aPort;
   }
 
   /**
@@ -170,12 +175,14 @@ public class QUnitPlugin extends AbstractMojo {
           fileSetManager.getIncludedFiles(testResources),
           fileSetManager.getExcludedFiles(testResources));
 
+      env.setLookupPackages(components.toArray(new String[] {}));
+      env.setProjectBasePath(projectBasePath.toURI().toURL());
+
       for (Entry entry : contextPath) {
-        // TODO(mmirabelli): append instead of replace the lookup packages.
-        env.setLookupPackages(entry.components.toArray(new String[] {}));
+        ContextPathBuilder.addDefinition(entry.files.getDirectory(),
+            entry.files.getIncludesArray(), entry.files.getExcludesArray());
       }
 
-      env.setProjectBasePath(projectBasePath.toURI().toURL());
     } catch (MalformedURLException e) {
       throw new RuntimeException("Cannot retrieve the project build "
           + "directory.");

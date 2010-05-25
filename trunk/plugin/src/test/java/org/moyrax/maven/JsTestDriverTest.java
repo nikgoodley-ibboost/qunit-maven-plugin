@@ -3,6 +3,8 @@ package org.moyrax.maven;
 import java.io.File;
 import java.util.concurrent.Semaphore;
 
+import org.apache.maven.shared.model.fileset.FileSet;
+import org.apache.maven.shared.model.fileset.util.FileSetManager;
 import org.junit.Test;
 import org.moyrax.javascript.Shell;
 import org.moyrax.resolver.ClassPathResolver;
@@ -14,6 +16,11 @@ public class JsTestDriverTest {
   private EnvironmentConfiguration context = new EnvironmentConfiguration();
 
   private Semaphore semaphore = new Semaphore(0, true);
+
+  /**
+   * Object to ask the files specified in the plugin configuration.
+   */
+  private final FileSetManager fileSetManager = new FileSetManager();
 
   @Test
   public void testApplication() throws Exception {
@@ -28,10 +35,15 @@ public class JsTestDriverTest {
 
     this.semaphore.acquire();
 
-    context.setFiles("", new String[] {
-      "test/src/*.js",
-      "test/src-test/*.js"
-    }, new String[] {});
+    final String baseDirectory = System.getProperty("user.dir");
+    final FileSet tests = new FileSet();
+
+    tests.setDirectory(baseDirectory + "/src/test/resources/org/moyrax/");
+    tests.addInclude("**/*.html");
+
+    context.setFiles(tests.getDirectory(),
+        fileSetManager.getIncludedFiles(tests),
+        fileSetManager.getExcludedFiles(tests));
 
     context.setLookupPackages(new String[] {
         "classpath:/org/moyrax/javascript/common/**"
