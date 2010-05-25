@@ -192,6 +192,46 @@ public class ScriptUtils {
    * Determines if a class can be exported to the client application as a global
    * component.
    *
+   * @param klass Name of the class to check. It cannot be null or empty.
+   *
+   * @return If the class is designed to be exported, it returns
+   *  <code>true</code>, otherwise it returns <code>false</code>.
+   */
+  public static boolean isExportable(final String className)
+    throws ClassNotFoundException {
+
+    return isExportable(className,
+        Thread.currentThread().getContextClassLoader());
+  }
+
+  /**
+   * Determines if a class can be exported to the client application as a global
+   * component.
+   *
+   * @param klass Name of the class to check. It cannot be null or empty.
+   * @param classLoader Class loader used to locate the resources. It cannot
+   *    be null.
+   *
+   * @return If the class is designed to be exported, it returns
+   *  <code>true</code>, otherwise it returns <code>false</code>.
+   */
+  public static boolean isExportable(final String className,
+      final ClassLoader classLoader) {
+
+    Validate.notEmpty(className, "The class's name cannot be null or empty.");
+
+    try {
+      return ClassUtils.hasAnnotation(className, Script.class.getName(),
+          classLoader);
+    } catch (ClassNotFoundException ex) {
+      return false;
+    }
+  }
+
+  /**
+   * Determines if a class can be exported to the client application as a global
+   * component.
+   *
    * @param klass Class to check. It cannot be null.
    *
    * @return If the class is designed to be exported, it returns

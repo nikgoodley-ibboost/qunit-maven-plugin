@@ -7,6 +7,7 @@ import java.util.List;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 import org.apache.commons.lang.Validate;
+import org.moyrax.reflect.ClassResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
@@ -191,5 +192,62 @@ public class ClassUtils {
     }
 
     return clazz;
+  }
+
+  /**
+   * Determines if a class contains the specified annotation. The class is
+   * loaded as a resource instead of put it in memory as a JVM class.
+   *
+   * @param className Class's name to read from the classpath. It cannot be null
+   *    or empty.
+   * @param annotationClass Name of the annotation's class to check. It cannot
+   *    be null or empty.
+   *
+   * @return Returns <code>true</code> if the given class contains the the
+   *    annotation, <code>false</code> otherwise.
+   *
+   * @throws ClassNotFoundException If the class with the specified name does
+   *    not exists.
+   */
+  public static boolean hasAnnotation(final String className,
+      final String annotationClass) throws ClassNotFoundException {
+    return hasAnnotation(className, annotationClass,
+        Thread.currentThread().getContextClassLoader());
+  }
+
+  /**
+   * Determines if a class contains the specified annotation. The class is
+   * loaded as a resource instead of put it in memory as a JVM class.
+   *
+   * @param className Class's name to read from the classpath. It cannot be null
+   *    or empty.
+   * @param annotationClass Name of the annotation's class to check. It cannot
+   *    be null or empty.
+   * @param classLoader Class loader used to locate the resources. It cannot
+   *    be null.
+   *
+   * @return Returns <code>true</code> if the given class contains the the
+   *    annotation, <code>false</code> otherwise.
+   *
+   * @throws ClassNotFoundException If the class with the specified name does
+   *    not exists.
+   */
+  public static boolean hasAnnotation(final String className,
+      final String annotationClass, final ClassLoader classLoader)
+        throws ClassNotFoundException {
+
+    Validate.notEmpty(className, "The class's name cannot be null or empty.");
+    Validate.notEmpty(annotationClass, "The annotation class cannot be null or"
+        + " empty.");
+    Validate.notNull(classLoader, "The class loader cannot be null.");
+
+    try {
+      ClassResource klass = new ClassResource(className, classLoader);
+
+      return klass.isAnnotationPresent(annotationClass);
+    } catch (IOException ex) {
+      throw new ClassNotFoundException("The class " + className + " is not"
+          + " found in the current classpath.", ex);
+    }
   }
 }
