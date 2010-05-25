@@ -1,6 +1,6 @@
 package org.moyrax.maven;
 
-import org.junit.Ignore;
+import org.apache.maven.shared.model.fileset.FileSet;
 import org.junit.Test;
 
 /**
@@ -11,17 +11,20 @@ import org.junit.Test;
  */
 public class QUnitPluginTest {
   @Test
-  @Ignore
   public void testSimpleScript() throws Exception {
     final QUnitPlugin runner = new QUnitPlugin();
 
-    final String[] includes = new String[] {};
-    final String[] excludes = new String[] { "**/.svn/**" };
-
     final String baseDirectory = System.getProperty("user.dir");
+    final FileSet tests = new FileSet();
 
-    ContextPathBuilder.addDefinition(baseDirectory, includes, excludes);
+    tests.setDirectory(baseDirectory + "/src/test/resources/org/moyrax/");
+    tests.addInclude("**/*test.html");
 
-    runner.execute("classpath:/org/moyrax/javascript/test.js");
+    runner.setProjectBasePath(baseDirectory);
+    runner.setTestResources(tests);
+    runner.addComponentSearchPath("classpath:/org/moyrax/javascript/common/**");
+    runner.setServerPort(1337);
+
+    runner.execute();
   }
 }

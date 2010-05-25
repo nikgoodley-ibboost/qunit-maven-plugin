@@ -1,7 +1,5 @@
 package org.moyrax.maven;
 
-import java.util.List;
-
 import org.apache.maven.shared.model.fileset.FileSet;
 
 /**
@@ -17,13 +15,6 @@ public class Entry {
    * @parameter
    */
   public FileSet files;
-
-  /**
-   * List of classpath urls in which lookup for exportable Java classes.
-   *
-   * @parameter
-   */
-  public List<String> components;
 
   /** Default constructor. */
   public Entry() {}
