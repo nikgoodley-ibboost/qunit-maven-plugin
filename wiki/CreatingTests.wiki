@@ -4,8 +4,32 @@
 
 TODO
 
+== Basic test (version 1.1) ==
 
-== Basic test ==
+The version 1.1 uses Env.js to create the browser environment. This way was deprecated in the version 1.2 and now the plugin uses HtmlUnit instead, since it provides a more consistent and configurable environment.
+
+{{{
+test("test1", 3, function() {
+  print("Executing test1...");
+  ok( true, "test running before jquery loads");
+});
+
+print("HERE2");
+
+test("test2", function() {
+  print("HERE3");
+  ok( true, "test running after jquery loads");
+});
+
+include("lib:/env.js");
+
+includePage({
+  url : "/path/to/my/test.html",
+  logLevel : Envjs.NONE
+});
+}}}
+
+== Basic test (version 1.2) ==
 
 This test shows how to set up a simple page and use QUnit to run some tests. It also add the PrototypeFramework library to be used in the future.
 
