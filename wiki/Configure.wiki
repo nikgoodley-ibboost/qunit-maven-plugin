@@ -38,5 +38,23 @@ Pom dependency and configuration.
       </includes>
     </testResources>
   </configuration>
+
+  <!-- Required dependencies. -->
+  <dependencies>
+    <!-- Rhino JavaScript interpreter -->
+    <dependency>
+      <groupId>rhino</groupId>
+      <artifactId>js</artifactId>
+      <version>1.7R2</version>
+    </dependency>
+
+    <!-- Maven dependencies -->
+    <dependency>
+      <groupId>org.apache.maven.shared</groupId>
+      <artifactId>file-management</artifactId>
+      <version>1.2</version>
+    </dependency>
+  </dependencies>
+
 </plugin>
 }}}
