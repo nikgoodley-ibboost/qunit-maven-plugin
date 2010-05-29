@@ -1,0 +1,15 @@
+#summary QUnit Maven Plugin architecture.
+
+== Overview ==
+
+TODO
+
+
+== How it works ==
+
+http://img707.imageshack.us/img707/7819/pluginworkflow.png
+
+=== QUnitPlugin ===
+This object is the plugin entry point defined as a mojo (Maven plain Old Java Object). It contains the POM and base environment configuration. For further information about how maven manages the plugins, please see the [http://maven.apache.org/plugin-developers/index.html Plugin Developers Centre]
+
+It configures the testing server and waits until the context initialization will be ready. After that it gives control to the testing client which has the needed information to run the configured tests.
