@@ -1,0 +1,10 @@
+#summary Table of Contents.
+
+* [Configuration]
+ * [PluginRepository Plugin repository]
+ * [Configure POM configuration]
+ * [Configure POM configuration v1.2]
+* [Documentation]
+ * [CreatingTests Creating tests]
+* [Developers]
+ * [Architecture Plugin architecture]
