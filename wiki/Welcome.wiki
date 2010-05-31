@@ -1,0 +1,13 @@
+
+Welcome to the QUnit maven plugin wiki. This wiki tries to cover the needed topics to use and implement this product on your project. If you wish to comment on it, please visit the [Suggestions suggestions] page.
+
+Configuration
+ * [PluginRepository Plugin repository]
+ * [Configure POM configuration]
+ * [Configure_v12 POM configuration v1.2]
+
+Documentation
+ * [CreatingTests Creating tests]
+
+Developers
+ * [Architecture Plugin architecture]
