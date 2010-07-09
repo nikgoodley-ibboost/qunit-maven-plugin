@@ -22,7 +22,7 @@ public class ContextFileResolverTest {
   public void setUp() {
     final File basePath = new File(
         Thread.currentThread().getContextClassLoader()
-          .getResource("org/moyrax/javascript/lib/env.js").getPath())
+          .getResource("org/moyrax/javascript/lib/qunit.js").getPath())
       .getParentFile();
 
     final File[] contextPath = new File[] { basePath };
@@ -32,31 +32,31 @@ public class ContextFileResolverTest {
 
   @Test
   public void testCanHandleFile() {
-    Assert.assertEquals(resolver.canHandle("env.js"),
+    Assert.assertEquals(resolver.canHandle("qunit.js"),
         ResourceResolver.HANDLE_SHARED);
-    Assert.assertEquals(resolver.canHandle("context:env.js"),
+    Assert.assertEquals(resolver.canHandle("context:qunit.js"),
         ResourceResolver.HANDLE_SHARED);
-    Assert.assertEquals(resolver.canHandle("context:/env.js"),
+    Assert.assertEquals(resolver.canHandle("context:/qunit.js"),
         ResourceResolver.HANDLE_SHARED);
-    Assert.assertEquals(resolver.canHandle("lib:env.js"),
+    Assert.assertEquals(resolver.canHandle("lib:qunit.js"),
         ResourceResolver.CANNOT_HANDLE);
-    Assert.assertEquals(resolver.canHandle("lib:/env.js"),
+    Assert.assertEquals(resolver.canHandle("lib:/qunit.js"),
         ResourceResolver.CANNOT_HANDLE);
   }
 
   @Test
   public void testResolveFile() throws Exception {
-    final String contextFile = "env.js";
+    final String contextFile = "qunit.js";
     final File result = (File)resolver.resolve(contextFile);
 
     Assert.assertNotNull(result);
     Assert.assertTrue(result.getCanonicalPath().endsWith(
-        "/org/moyrax/javascript/lib/env.js"));
+        "/org/moyrax/javascript/lib/qunit.js"));
   }
 
   @Test
   public void testExcludes() {
-    final String contextFile = "env.js";
+    final String contextFile = "qunit.js";
 
     File result = (File)resolver.resolve(contextFile);
 
@@ -64,7 +64,7 @@ public class ContextFileResolverTest {
 
     final File basePath = new File(
         Thread.currentThread().getContextClassLoader()
-          .getResource("org/moyrax/javascript/lib/env.js").getPath())
+          .getResource("org/moyrax/javascript/lib/qunit.js").getPath())
       .getParentFile();
 
     final File[] contextPath = new File[] { basePath.getParentFile() };
@@ -84,6 +84,6 @@ public class ContextFileResolverTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void testResolveNonHandled() throws Exception {
-    resolver.resolve("classpath:/env.js");
+    resolver.resolve("classpath:/qunit.js");
   }
 }

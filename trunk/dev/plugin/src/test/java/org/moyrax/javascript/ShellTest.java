@@ -57,7 +57,7 @@ public class ShellTest {
   @Test
   public void testIncludeLib() throws Exception {
     final String[] includes = new String[] {
-      "lib:/env.js", "lib:/qunit.js"
+      "lib:/qunit.js"
     };
 
     Shell.include(context, scope, includes, null);
@@ -66,7 +66,7 @@ public class ShellTest {
   @Test
   public void testIncludeClassPath() throws Exception {
     final String[] includes = new String[] {
-      "classpath:/org/moyrax/javascript/lib/env.js"
+      "classpath:/org/moyrax/javascript/lib/qunit.js"
     };
 
     Shell.include(context, scope, includes, null);
@@ -75,12 +75,12 @@ public class ShellTest {
   @Test
   public void testIncludeResource() throws Exception {
     final String[] includes = new String[] {
-      "env.js"
+      "qunit.js"
     };
 
     final File basePath = new File(
         Thread.currentThread().getContextClassLoader()
-          .getResource("org/moyrax/javascript/lib/env.js").getPath())
+          .getResource("org/moyrax/javascript/lib/qunit.js").getPath())
       .getParentFile();
 
     final File[] contextPath = new File[] { basePath };
@@ -93,7 +93,7 @@ public class ShellTest {
   @Test(expected = JavaScriptException.class)
   public void testInvalidProtocol() throws Exception {
     final String[] includes = new String[] {
-      "foo:/env.js", "lib:/qunit.js"
+      "foo:/qunit.js"
     };
 
     Shell.include(context, scope, includes, null);

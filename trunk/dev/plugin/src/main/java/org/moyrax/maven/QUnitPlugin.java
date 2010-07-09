@@ -3,6 +3,7 @@ package org.moyrax.maven;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang.Validate;
@@ -10,8 +11,12 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
+import org.moyrax.javascript.qunit.ReporterManager;
+import org.moyrax.javascript.qunit.TestRunner;
+import org.moyrax.reporting.ConsoleReporter;
+import org.moyrax.reporting.Reporter;
 
-import com.gargoylesoftware.htmlunit.BrowserVersion;
+import com.gargoylesoftware.htmlunit.WebClient;
 
 /**
  * Goal which touches a timestamp file.
@@ -63,14 +68,32 @@ public class QUnitPlugin extends AbstractMojo {
   private final FileSetManager fileSetManager = new FileSetManager();
 
   /**
-   * Testing server.
-   */
-  private static TestingServer server;
-
-  /**
    * Testing client.
    */
   private static TestingClient client;
+
+  /**
+   * Reporting results to the console.
+   */
+  private ReporterManager reporter = new ReporterManager(
+      new ArrayList<Reporter>(Arrays.asList(new Reporter[] {
+          new ConsoleReporter() })));
+
+  /**
+   * Container for running tests.
+   */
+  private WebClient browser = new WebClient();
+
+  /**
+   * Testing runner.
+   */
+  private TestRunner runner;
+
+  
+  /** Default constructor. */
+  public QUnitPlugin() {
+    runner = new TestRunner(reporter, browser);
+  }
 
   /**
    * Executes this plugin when the build reached the defined phase and goal.
@@ -163,10 +186,6 @@ public class QUnitPlugin extends AbstractMojo {
    * Initializes the environment configuration and starts the testing server.
    */
   private void initEnvironment() {
-    if (server != null) {
-      return;
-    }
-
     EnvironmentConfiguration env = new EnvironmentConfiguration();
 
     try {
@@ -190,9 +209,6 @@ public class QUnitPlugin extends AbstractMojo {
 
     ContextPathBuilder.build();
 
-    server = new TestingServer(env);
-    server.start();
-
-    client = new TestingClient(server, BrowserVersion.FIREFOX_3);
+    client = new TestingClient(runner, env);
   }
 }
