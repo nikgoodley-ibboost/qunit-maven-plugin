@@ -1,7 +1,7 @@
 package org.moyrax.maven;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
 
 import org.apache.commons.lang.Validate;
 import org.apache.commons.logging.Log;
@@ -9,13 +9,14 @@ import org.apache.commons.logging.LogFactory;
 import org.moyrax.javascript.ConfigurableEngine;
 import org.moyrax.javascript.ScriptComponentScanner;
 import org.moyrax.javascript.Shell;
+import org.moyrax.javascript.qunit.TestRunner;
 import org.moyrax.javascript.shell.Global;
 import org.moyrax.resolver.ClassPathResolver;
 import org.moyrax.resolver.LibraryResolver;
+import org.moyrax.util.ResourceUtils;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
-import com.gargoylesoftware.htmlunit.WebClient;
-import com.gargoylesoftware.htmlunit.javascript.JavaScriptEngine;
+import com.gargoylesoftware.htmlunit.ScriptException;
 
 /**
  * This class uses HTMLUnit to initialize a browser environment which will be
@@ -30,14 +31,9 @@ public class TestingClient {
   private static final Log logger = LogFactory.getLog(TestingClient.class);
 
   /**
-   * Browser which will be connected to the testing server.
-   */
-  private WebClient browser;
-
-  /**
    * Testing server used to execute the configured tests.
    */
-  private TestingServer server;
+  private TestRunner runner;
 
   /**
    * Context configuration for this client.
@@ -50,44 +46,42 @@ public class TestingClient {
   private ConfigurableEngine engine;
 
   /**
-   * Creates a new client which will be captured by the specified server.
+   * Creates a new client which uses the specified runner to run tests.
    *
-   * @param server Testing server. It cannot be null.
+   * @param theRunner Test runner. It cannot be null.
+   * @param theContext Testing context configuration. It cannot be null.
    */
-  public TestingClient(final TestingServer server) {
-    Validate.notNull(server, "The server parameter cannot be null.");
-
-    this.server = server;
-    this.context = this.server.getContext();
-    this.browser = this.createWebClient();
-
-    this.browser.setJavaScriptEngine(this.createJavaScriptEngine());
+  public TestingClient(final TestRunner theRunner,
+      final EnvironmentConfiguration theContext) {
+    this(theRunner, theContext, BrowserVersion.getDefault());
   }
 
   /**
-   * Creates a new client which will be captured by the specified server,
-   * and emulates the specified browser version.
+   * Creates a new client which uses the specified runner to run tests, and
+   * emulates the specified browser version.
    *
-   * @param server Testing server. It cannot be null.
+   * @param theRunner Test runner. It cannot be null.
+   * @param theContext Testing context configuration. It cannot be null.
    * @param version Browser which this instance will emulate. It cannot be null.
    */
-  public TestingClient(final TestingServer server,
-      final BrowserVersion version) {
+  public TestingClient(final TestRunner theRunner,
+      final EnvironmentConfiguration theContext, final BrowserVersion version) {
 
-    Validate.notNull(server, "The server parameter cannot be null.");
+    Validate.notNull(theRunner, "The test runner cannot be null.");
+    Validate.notNull(theContext, "The context cannot be null.");
     Validate.notNull(version, "The browser version cannot be null.");
 
-    this.server = server;
-    this.context = this.server.getContext();
-    this.browser = this.createWebClient(version);
+    runner = theRunner;
+    context = theContext;
 
-    this.browser.setJavaScriptEngine(this.createJavaScriptEngine());
+    configureWebClient();
+    setUpJavaScriptEngine();
   }
 
   /**
    * Executes all configured tests.
    */
-  public void runTests() {
+  public void runTests() throws ScriptException {
     try {
       this.loadClientComponents();
     } catch (MalformedURLException ex) {
@@ -100,8 +94,16 @@ public class TestingClient {
     for (String include : includes) {
       String resource = basePath + include;
 
-      browser.openWindow(this.buildResourceUrl(resource), "Test");
+      try {
+        runner.run(ResourceUtils.getResourceInputStream(
+            resource));
+      } catch (IOException ex) {
+        runner.getReporterManager().info("Error reading test resource: "
+            + resource);
+      }
     }
+
+    runner.reportAll();
   }
 
   /**
@@ -118,39 +120,12 @@ public class TestingClient {
   }
 
   /**
-   * Creates and returns the url of the resource to be tested.
-   *
-   * @param resourcePath The test file location. It cannot be null or empty.
-   * @return Returns the built {@link URL}.
-   * @throws IllegalArgumentException if the working string is not a valid URL.
-   */
-  private URL buildResourceUrl(final String resourcePath) {
-    Validate.notEmpty(resourcePath, "The resource path cannot be null or "
-        + "empty.");
-
-    // TODO(mmirabelli) Allow configurable urls.
-    String captureUrl = this.context.getLocalUrl() + "/content/?resource="
-        + resourcePath;
-
-    URL url;
-
-    try {
-      url = new URL(captureUrl);
-    } catch (MalformedURLException ex) {
-      throw new IllegalArgumentException("The specified string is not a "
-          + "valid URL.", ex);
-    }
-
-    return url;
-  }
-
-  /**
    * Creates and initializes a new {@link ConfigurableEngine}.
    *
    * @return Returns the created {@link ConfigurableEngine}.
    */
-  private JavaScriptEngine createJavaScriptEngine() {
-    engine = new ConfigurableEngine(this.browser);
+  private void setUpJavaScriptEngine() {
+    engine = new ConfigurableEngine(this.runner.getClient());
 
     engine.registerClass(Global.class);
     engine.registerClass(Shell.class);
@@ -158,35 +133,15 @@ public class TestingClient {
     Shell.setResolver("lib", new LibraryResolver("/org/moyrax/javascript/lib"));
     Shell.setResolver("classpath", new ClassPathResolver());
 
-    return engine;
+    runner.getClient().setJavaScriptEngine(engine);
   }
 
   /**
-   * Creates a new {@link WebClient} and sets the default options.
-   *
-   * @return Returns the new {@link WebClient} instance.
+   * Sets up the runner's web client configuration needed for this client.
    */
-  private WebClient createWebClient() {
-    return createWebClient(BrowserVersion.FIREFOX_3);
-  }
-
-  /**
-   * Creates a new {@link WebClient} and sets the default options.
-   *
-   * @param version The version of the browser which will be emulated by this
-   *    client. It cannot be null.
-   *
-   * @return Returns the new {@link WebClient} instance.
-   */
-  private WebClient createWebClient(final BrowserVersion version) {
-    Validate.notNull(version, "The version cannot be null.");
-
-    WebClient client = new WebClient(version);
-
-    client.setRedirectEnabled(true);
-    client.setJavaScriptEnabled(true);
-
-    return client;
+  private void configureWebClient() {
+    runner.getClient().setRedirectEnabled(true);
+    runner.getClient().setJavaScriptEnabled(true);
   }
 
   /**

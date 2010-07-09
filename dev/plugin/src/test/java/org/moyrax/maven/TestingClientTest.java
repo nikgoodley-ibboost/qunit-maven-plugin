@@ -1,39 +1,65 @@
 package org.moyrax.maven;
 
 import java.io.File;
-import java.util.concurrent.Semaphore;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
+import org.junit.Before;
 import org.junit.Test;
 import org.moyrax.javascript.Shell;
+import org.moyrax.javascript.qunit.ReporterManager;
+import org.moyrax.javascript.qunit.TestRunner;
+import org.moyrax.reporting.ConsoleReporter;
+import org.moyrax.reporting.Reporter;
 import org.moyrax.resolver.ClassPathResolver;
 import org.moyrax.resolver.LibraryResolver;
 
-import com.gargoylesoftware.htmlunit.BrowserVersion;
+import com.gargoylesoftware.htmlunit.WebClient;
 
-public class JsTestDriverTest {
+/**
+ * Tests the {@link TestingClient} class.
+ *
+ * @author Matias Mirabelli &lt;lumen.night@gmail.com&gt;
+ */
+public class TestingClientTest {
+  /** Test environment configuration. */
   private EnvironmentConfiguration context = new EnvironmentConfiguration();
 
-  private Semaphore semaphore = new Semaphore(0, true);
+  /**
+   * Reporting results to the console.
+   */
+  private ReporterManager reporter = new ReporterManager(
+      new ArrayList<Reporter>(Arrays.asList(new Reporter[] {
+          new ConsoleReporter() })));
+
+  /**
+   * Container for running tests.
+   */
+  private WebClient client = new WebClient();
+
+  /**
+   * Testing runner.
+   */
+  private TestRunner runner;
 
   /**
    * Object to ask the files specified in the plugin configuration.
    */
   private final FileSetManager fileSetManager = new FileSetManager();
 
+  @Before
+  public void setUp() {
+    runner = new TestRunner(reporter, client);
+  }
+
   @Test
   public void testApplication() throws Exception {
-    final TestingServer server = new TestingServer(context);
-    final TestingClient testDriverClient = new TestingClient(
-        server, BrowserVersion.FIREFOX_3);
+    final TestingClient testDriverClient = new TestingClient(runner,context);
 
     context.setTestOutputDirectory("test/");
     context.setProjectBasePath(new File(".").toURI().toURL());
-
-    server.start(semaphore);
-
-    this.semaphore.acquire();
 
     final String baseDirectory = System.getProperty("user.dir");
     final FileSet tests = new FileSet();
@@ -55,11 +81,6 @@ public class JsTestDriverTest {
     loadContextResources(testDriverClient);
 
     testDriverClient.runTests();
-
-    server.stopServer();
-    server.join();
-
-    System.out.println("Test finished.");
   }
 
   /**
@@ -68,9 +89,7 @@ public class JsTestDriverTest {
   private void loadContextResources(final TestingClient client) {
     final String[] dependencies = new String[] {
       /* QUnit testing framework. */
-      "org/moyrax/javascript/lib/qunit.js",
-      /* QUnit plugin test handler. */
-      "org/moyrax/javascript/lib/qunit-plugin.js"
+      "org/moyrax/javascript/lib/qunit.js"
     };
 
     for (int i = 0; i < dependencies.length; i++) {

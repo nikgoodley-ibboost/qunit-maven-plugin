@@ -1,13 +1,14 @@
 package org.moyrax.javascript.qunit;
 
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
+
+import net.sourceforge.htmlunit.corejs.javascript.JavaScriptException;
 
 import org.apache.commons.lang.Validate;
-import org.moyrax.javascript.JavaScriptEngineException;
-import org.moyrax.javascript.annotation.Function;
-import org.moyrax.javascript.annotation.Script;
+
 
 /**
  * This class represents a QUnit testing module.
@@ -15,8 +16,7 @@ import org.moyrax.javascript.annotation.Script;
  * @author Matias Mirabelli <lumen.night@gmail.com>
  * @since 1.2
  */
-@Script
-public class QUnitModule {
+public class Module {
   /** Timestamp to calculate the total time. */
   private long startTime = new Date().getTime();
 
@@ -26,16 +26,6 @@ public class QUnitModule {
   private String name;
 
   /**
-   * Number of tests inside the module which failed.
-   */
-  private int failures;
-
-  /**
-   * Number of tests assertions inside the module.
-   */
-  private int total;
-
-  /**
    * Number of milliseconds the test execution took.
    */
   private float totalTime;
@@ -43,17 +33,17 @@ public class QUnitModule {
   /**
    * List of tests that this module contains.
    */
-  private HashMap<String, QUnitTest> tests = new HashMap<String, QUnitTest>();
+  private HashMap<String, TestCase> tests = new HashMap<String, TestCase>();
 
   /** Default constructor. Required by Rhino. */
-  public QUnitModule() {}
+  public Module() {}
 
   /**
    * Creates a new QUnit test module.
    *
    * @param moduleName Name for this module. It cannot be null or empty.
    */
-  public QUnitModule(final String moduleName) {
+  public Module(final String moduleName) {
     Validate.notEmpty(moduleName, "The module name cannot be null or empty.");
 
     this.name = moduleName;
@@ -65,13 +55,12 @@ public class QUnitModule {
    * @param aTest {QUnitTest} Test to be added in this module. It cannot be
    *    null.
    */
-  @Function
-  public void addTest (final QUnitTest aTest) {
+  public void addTest (final TestCase aTest) {
     Validate.notNull(aTest, "The test cannot be null.");
 
     if (tests.containsKey(aTest.getName())) {
-      throw new JavaScriptEngineException("The test '" + aTest.getName() +
-          "' already exists in this module.");
+      throw new JavaScriptException(this, "The test '" + aTest.getName() +
+          "' already exists in this module.", 0);
     }
 
     aTest.setModule(this);
@@ -86,8 +75,7 @@ public class QUnitModule {
    * @return Returns the required QUnitTest, or null if it does not exists in
    *    this module.
    */
-  @Function
-  public QUnitTest getTestByName (final String name) {
+  public TestCase getTestByName (final String name) {
     if (tests.containsKey(name)) {
       return tests.get(name);
     }
@@ -98,9 +86,8 @@ public class QUnitModule {
   /**
    * Returns a list with all tests in this module.
    */
-  @Function
-  public Collection<QUnitTest> getTests() {
-    return tests.values();
+  public List<TestCase> getTests() {
+    return new ArrayList<TestCase>(tests.values());
   }
 
   /**
@@ -109,9 +96,30 @@ public class QUnitModule {
    * @param name {String} Name of the test to check.
    * @return Returns <code>true</code> if the test exists, false otherwise.
    */
-  @Function
   public boolean hasTest(final String name) {
     return tests.containsKey(name);
+  }
+
+  public boolean hasFailed() {
+    return getFailed().size() > 0;
+  }
+
+  /**
+   * Retrieves the list of failed tests.
+   *
+   * @return A list of failed tests, or an empty list if there're no test
+   *    failure.
+   */
+  public List<TestCase> getFailed() {
+    ArrayList<TestCase> failed = new ArrayList<TestCase>();
+
+    for (TestCase test : tests.values()) {
+      if (!test.isSuccess()) {
+        failed.add(test);
+      }
+    }
+
+    return failed;
   }
 
   /**
@@ -132,32 +140,14 @@ public class QUnitModule {
    * Returns the number of tests inside the module which failed.
    */
   public int getFailures() {
-    return failures;
-  }
-
-  /**
-   * Sets the number of tests that failed.
-   *
-   * @param failures Number of failures.
-   */
-  public void setFailures(int failures) {
-    this.failures = failures;
+    return getFailed().size();
   }
 
   /**
    * Returns the number of tests assertions inside the module.
    */
   public int getTotal() {
-    return total;
-  }
-
-  /**
-   * Sets the number of tests assertions inside the module.
-   *
-   * @param total Number of assertions.
-   */
-  public void setTotal(int total) {
-    this.total = total;
+    return tests.size();
   }
 
   /**
