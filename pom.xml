@@ -4,7 +4,7 @@
 
   <groupId>org.moyrax.qunit</groupId>
   <artifactId>maven-plugin-parent</artifactId>
-  <version>1.2.0-SNAPSHOT</version>
+  <version>1.2.0</version>
   <packaging>pom</packaging>
   <name>QUnit Maven Plugin - parent</name>
   <url>http://code.google.com/p/qunit-maven-plugin/</url>
@@ -23,6 +23,7 @@
         <configuration>
           <tagBase>https://qunit-maven-plugin.googlecode.com/svn/tags</tagBase>
           <preparationGoals>install</preparationGoals>
+          <autoVersionSubmodules>true</autoVersionSubmodules>
         </configuration>
       </plugin>
     </plugins>
@@ -68,9 +69,9 @@
   </pluginRepositories>
 
   <scm>
-    <connection>scm:svn:http://qunit-maven-plugin.googlecode.com/svn/trunk/</connection>
-    <developerConnection>scm:svn:https://qunit-maven-plugin.googlecode.com/svn/trunk/</developerConnection>
-    <url>http://qunit-maven-plugin.googlecode.com/svn/trunk/</url>
+    <connection>scm:svn:http://qunit-maven-plugin.googlecode.com/svn/tags/qunit-maven-plugin-1.2.0</connection>
+    <developerConnection>scm:svn:https://qunit-maven-plugin.googlecode.com/svn/tags/qunit-maven-plugin-1.2.0</developerConnection>
+    <url>http://qunit-maven-plugin.googlecode.com/svn/tags/qunit-maven-plugin-1.2.0</url>
   </scm>
 
   <distributionManagement>
