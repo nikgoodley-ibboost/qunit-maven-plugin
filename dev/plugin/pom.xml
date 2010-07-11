@@ -47,10 +47,10 @@
       <version>6.1.24</version>
     </dependency>
 
-    <!-- JavaScript extensions-->
+    <!-- JavaScript core-->
     <dependency>
       <groupId>org.moyrax</groupId>
-      <artifactId>javascript-extensions</artifactId>
+      <artifactId>javascript-core</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>
