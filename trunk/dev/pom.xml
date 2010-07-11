@@ -14,7 +14,7 @@
   <name>QUnit Maven Plugin - dev</name>
 
   <modules>
-    <module>qunit-plugin</module>
+    <module>maven-plugin</module>
     <module>javascript-core</module>
   </modules>
 
