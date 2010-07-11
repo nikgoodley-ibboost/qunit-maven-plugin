@@ -21,7 +21,7 @@ import com.gargoylesoftware.htmlunit.WebClient;
 /**
  * Goal which touches a timestamp file.
  *
- * @goal qunit
+ * @goal test
  * @phase test
  */
 public class QUnitPlugin extends AbstractMojo {
@@ -172,9 +172,7 @@ public class QUnitPlugin extends AbstractMojo {
   private void loadContextResources() {
     final String[] dependencies = new String[] {
       /* QUnit testing framework. */
-      "org/moyrax/javascript/lib/qunit.js",
-      /* QUnit plugin test handler. */
-      "org/moyrax/javascript/lib/qunit-plugin.js"
+      "org/moyrax/javascript/lib/qunit.js"
     };
 
     for (int i = 0; i < dependencies.length; i++) {
