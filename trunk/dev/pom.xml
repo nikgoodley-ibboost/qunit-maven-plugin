@@ -10,7 +10,7 @@
   <url>http://maven.apache.org</url>
 
   <modules>
-    <module>plugin</module>
+    <module>qunit-plugin</module>
     <module>javascript-core</module>
   </modules>
 
