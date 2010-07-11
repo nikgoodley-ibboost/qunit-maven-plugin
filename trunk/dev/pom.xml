@@ -11,7 +11,7 @@
 
   <modules>
     <module>plugin</module>
-    <module>javascript-extensions</module>
+    <module>javascript-core</module>
   </modules>
 
   <dependencies>
