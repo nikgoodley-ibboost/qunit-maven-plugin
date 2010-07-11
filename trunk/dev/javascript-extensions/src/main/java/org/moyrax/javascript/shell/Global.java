@@ -69,6 +69,8 @@ import net.sourceforge.htmlunit.corejs.javascript.Wrapper;
 import net.sourceforge.htmlunit.corejs.javascript.serialize.ScriptableInputStream;
 import net.sourceforge.htmlunit.corejs.javascript.serialize.ScriptableOutputStream;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.moyrax.javascript.annotation.GlobalFunction;
 import org.moyrax.javascript.tool.ToolErrorReporter;
 
@@ -81,6 +83,9 @@ import org.moyrax.javascript.tool.ToolErrorReporter;
 @SuppressWarnings( "all" )
 @org.moyrax.javascript.annotation.Script
 public class Global extends ImporterTopLevel {
+  /** Default logger for this class. */
+  private static final Log log = LogFactory.getLog(Global.class);
+
   static final long serialVersionUID = 4029130780977538005L;
 
   /**
@@ -114,8 +119,8 @@ public class Global extends ImporterTopLevel {
     if (!scopes.containsKey(scope.getClassName())) {
       scopes.put(scope.getClassName(), new Global(scope));
     } else {
-      throw new IllegalArgumentException("The scope is already registered: "
-          + scope.getClassName());
+      log.warn("Initialization warning", new IllegalArgumentException(
+          "The scope is already registered: " + scope.getClassName()));
     }
   }
 

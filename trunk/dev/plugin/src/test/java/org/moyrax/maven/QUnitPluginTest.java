@@ -1,7 +1,6 @@
 package org.moyrax.maven;
 
 import org.apache.maven.shared.model.fileset.FileSet;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -10,10 +9,9 @@ import org.junit.Test;
  * @author Matias Mirabelli <lumen.night@gmail.com>
  * @since 0.50
  */
-@Ignore
 public class QUnitPluginTest {
   @Test
-  public void testSimpleScript() throws Exception {
+  public void testExecute() throws Exception {
     final QUnitPlugin runner = new QUnitPlugin();
 
     final String baseDirectory = System.getProperty("user.dir");

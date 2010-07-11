@@ -91,13 +91,12 @@ public class TestRunner {
 
     try {
       IOUtils.copy(resource, output);
+
+      run(file);
     } finally {
       output.close();
+      file.delete();
     }
-
-    run(file);
-
-    file.delete();
   }
 
   public void run(final File file) throws IOException, ScriptException {
