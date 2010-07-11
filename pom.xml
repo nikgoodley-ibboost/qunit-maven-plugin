@@ -4,7 +4,7 @@
 
   <groupId>org.moyrax.qunit</groupId>
   <artifactId>maven-plugin-parent</artifactId>
-  <version>1.2-SNAPSHOT</version>
+  <version>1.2.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>QUnit Maven Plugin - parent</name>
   <url>http://code.google.com/p/qunit-maven-plugin/</url>
