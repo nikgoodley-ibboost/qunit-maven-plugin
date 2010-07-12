@@ -1,9 +1,5 @@
 package org.moyrax.reporting;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintStream;
 
 import org.apache.commons.lang.Validate;
@@ -19,11 +15,6 @@ public class ConsoleReporter extends AbstractReporter {
    * Output writer.
    */
   private final PrintStream printer;
-
-  /**
-   * Keeps the output there.
-   */
-  private ByteArrayOutputStream output = new ByteArrayOutputStream();
 
   /**
    * Creates a new {@link ConsoleReporter} and uses the standard output stream.
@@ -48,14 +39,6 @@ public class ConsoleReporter extends AbstractReporter {
 
   /**
    * {@inheritDoc}
-   */
-  @Override
-  public InputStream getOutput() {
-    return new ByteArrayInputStream(output.toByteArray());
-  }
-
-  /**
-   * {@inheritDoc}
    * <p>
    * This also writes the operation result message to the configured output.
    * </p>
@@ -72,23 +55,6 @@ public class ConsoleReporter extends AbstractReporter {
 
       printer.println(outputBuffer);
       write(outputBuffer);
-    }
-  }
-
-  /**
-   * Writes to the internal output.
-   *
-   * @param message Message to write. It cannot be null.
-   */
-  private void write(final String message) {
-    Validate.notNull(message, "The message cannot be null.");
-
-    try {
-      String outputBuffer = message + "\n";
-
-      output.write(outputBuffer.getBytes());
-    } catch (IOException ex) {
-      // Nervermind.
     }
   }
 }

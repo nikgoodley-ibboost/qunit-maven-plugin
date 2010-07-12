@@ -1,10 +1,7 @@
 package org.moyrax.javascript.qunit;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 /**
@@ -55,7 +52,7 @@ public class TestCase {
   private long totalTime;
 
   /** Keeps the output buffer. */
-  private List<String> output = new ArrayList<String>();
+  private StringBuilder output = new StringBuilder();
 
   /** Default constructor. Required by Rhino. */
   public TestCase() {}
@@ -103,7 +100,7 @@ public class TestCase {
   public void print(final String message) {
     Validate.notNull(message, "The message cannot be null.");
 
-    output.add(message);
+    output.append(message);
   }
 
   /**
@@ -135,7 +132,7 @@ public class TestCase {
    *    print().
    */
   public String getOutput() {
-    return StringUtils.join(output.toArray(new String[] {}), "\n");
+    return output.toString();
   }
 
   /**

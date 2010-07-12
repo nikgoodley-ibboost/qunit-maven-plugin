@@ -4,6 +4,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
 import org.junit.Before;
@@ -11,7 +13,7 @@ import org.junit.Test;
 import org.moyrax.javascript.Shell;
 import org.moyrax.javascript.qunit.ReporterManager;
 import org.moyrax.javascript.qunit.TestRunner;
-import org.moyrax.reporting.ConsoleReporter;
+import org.moyrax.reporting.LogReporter;
 import org.moyrax.reporting.Reporter;
 import org.moyrax.resolver.ClassPathResolver;
 import org.moyrax.resolver.LibraryResolver;
@@ -24,6 +26,8 @@ import com.gargoylesoftware.htmlunit.WebClient;
  * @author Matias Mirabelli &lt;lumen.night@gmail.com&gt;
  */
 public class TestingClientTest {
+  private static final Log log = LogFactory.getLog(TestingClientTest.class);
+
   /** Test environment configuration. */
   private EnvironmentConfiguration context = new EnvironmentConfiguration();
 
@@ -32,7 +36,7 @@ public class TestingClientTest {
    */
   private ReporterManager reporter = new ReporterManager(
       new ArrayList<Reporter>(Arrays.asList(new Reporter[] {
-          new ConsoleReporter() })));
+          new LogReporter() })), log);
 
   /**
    * Container for running tests.

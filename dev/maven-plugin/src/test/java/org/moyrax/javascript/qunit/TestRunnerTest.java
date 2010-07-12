@@ -10,9 +10,11 @@ import java.util.Arrays;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
 import org.junit.Test;
-import org.moyrax.reporting.ConsoleReporter;
+import org.moyrax.reporting.LogReporter;
 import org.moyrax.reporting.Reporter;
 
 import com.gargoylesoftware.htmlunit.WebClient;
@@ -24,10 +26,11 @@ import com.gargoylesoftware.htmlunit.WebClient;
  * @since 1.2
  */
 public class TestRunnerTest {
+  private static final Log log = LogFactory.getLog(TestRunnerTest.class);
 
   private ReporterManager reporter = new ReporterManager(
       new ArrayList<Reporter>(Arrays.asList(new Reporter[] {
-          new ConsoleReporter() })));
+          new LogReporter() })), log);
   /**
    * Container for running tests.
    */

@@ -24,7 +24,15 @@ public enum TestStatus implements Status<TestCase> {
         test.start();
       }
 
-      return "";
+      String message = "";
+
+      if (test.getModule() != null) {
+        message += "\t";
+      }
+
+      message += "Test started: " + test.getName() + "()";
+
+      return message;
     }
   },
 
@@ -43,7 +51,7 @@ public enum TestStatus implements Status<TestCase> {
         message += "\t";
       }
 
-      message += test.getName() + "(" + test.getTotal()
+      message += "Test completed: " + test.getName() + "(" + test.getTotal()
           + " asserts, " + test.getFailures() + " failed, "
           + (test.getTotal() - test.getFailures()) + " passed)";
 
