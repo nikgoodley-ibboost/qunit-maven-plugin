@@ -1,14 +1,15 @@
 #labels Featured
 
-Welcome to the QUnit maven plugin wiki. This wiki tries to cover the needed topics to use and implement this product on your project. If you wish to comment on it, please visit the [Suggestions suggestions] page.
+Welcome to the QUnit Maven Plugin (aka QMP) wiki. This wiki provides information for using and implementing QMP on your project. If you wish to comment on it, please visit the [Suggestions suggestions] page.
 
 Configuration
  * [PluginRepository Plugin repository]
- * [Configure POM configuration]
- * [Configure_v12 POM configuration v1.2]
+ * [Configure_v12 POM configuration]
 
 Documentation
+ * [GettingStarted Getting started]
  * [CreatingTests Creating tests]
 
 Developers
  * [Architecture Plugin architecture]
+
