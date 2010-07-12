@@ -1,4 +1,5 @@
 #summary Plugin POM configuration.
+#labels Deprecated
 
 == Overview ==
 
