@@ -1,74 +1,53 @@
 #summary Plugin POM configuration.
-#labels Deprecated
 
 == Overview ==
 
-Pom dependency and configuration.
+POM configuration. For information about downloading QMP, see the
+[PluginRepository Plugin Repository] page in this wiki.
 
 == Details ==
 
+The following plugin configuration is a complete reference for get working QMP.
+
 {{{
 <plugin>
-  <groupId>org.moyrax</groupId>
+  <groupId>org.moyrax.qunit</groupId>
   <artifactId>qunit-maven-plugin</artifactId>
-  <version>1.1</version>
-   <executions>
+  <version>1.2.1</version>
+
+  <executions>
     <execution>
       <goals>
-        <!-- Goal for executing qunit tests. -->
-        <goal>qunit</goal>
+        <goal>test</goal>
       </goals>
     </execution>
   </executions>
+
   <configuration>
-    <!-- This directory and all the subdirectories will be used
-         as the "context path" for loading JavaScript sources
-         using the *include* directive. -->
+    <!-- Configures the lookup directory for JavaScript resources. -->
     <contextPath>
-      <directory>src/main/resources/</directory>
-      <excludes>
-        <exclude>**/.svn/**</exclude>
-      </excludes>
+      <entry>
+        <!-- Files included in the JavaScript context path. -->
+        <files>
+          <directory>src/main/resources/org/moyrax/</directory>
+          <includes>
+            <include>**/*.js</include>
+          </includes>
+          <excludes>
+            <exclude>**/.svn/**</exclude>
+          </excludes>
+        </files>
+      </entry>
     </contextPath>
 
-    <!-- Scripts which will be executed as qunit tests. -->
+    <!-- Test files to run -->
     <testResources>
       <directory>src/test/resources/org/moyrax/</directory>
       <includes>
-        <include>**/*-test.js</include>
+        <include>**/*-test.html</include>
       </includes>
     </testResources>
   </configuration>
-
-  <!-- Required dependencies. -->
-  <dependencies>
-    <!-- Rhino JavaScript interpreter -->
-    <dependency>
-      <groupId>rhino</groupId>
-      <artifactId>js</artifactId>
-      <version>1.7R2</version>
-    </dependency>
-
-    <!-- Maven dependencies -->
-    <dependency>
-      <groupId>org.apache.maven.shared</groupId>
-      <artifactId>file-management</artifactId>
-      <version>1.2</version>
-    </dependency>
-
-    <!-- HTML unit -->
-    <dependency>
-        <groupId>net.sourceforge.htmlunit</groupId>
-        <artifactId>htmlunit</artifactId>
-        <version>2.6</version>
-    </dependency>
-
-    <dependency>
-      <groupId>net.sourceforge.htmlunit</groupId>
-      <artifactId>htmlunit-core-js</artifactId>
-      <version>2.6</version>
-    </dependency>
-  </dependencies>
-
 </plugin>
 }}}
+

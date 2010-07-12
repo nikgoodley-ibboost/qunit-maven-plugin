@@ -4,7 +4,7 @@ Welcome to the QUnit Maven Plugin (aka QMP) wiki. This wiki provides information
 
 Configuration
  * [PluginRepository Plugin repository]
- * [Configure_v12 POM configuration]
+ * [Configure POM configuration]
 
 Documentation
  * [GettingStarted Getting started]
