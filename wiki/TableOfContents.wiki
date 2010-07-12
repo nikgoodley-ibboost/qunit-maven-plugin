@@ -1,11 +1,10 @@
 #summary Table of Contents.
-#labels Deprecated
 
  * [Configuration]
    * [PluginRepository Plugin repository]
    * [Configure POM configuration]
-   * [Configure_v12 POM configuration v1.2]
  * [Documentation]
+   * [GettingStarted Getting started]
    * [CreatingTests Creating tests]
  * [Developers]
    * [Architecture Plugin architecture]
