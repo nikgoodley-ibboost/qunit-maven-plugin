@@ -1,8 +1,11 @@
 package org.moyrax.reporting;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 
+import org.apache.commons.lang.Validate;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -16,13 +19,18 @@ import org.apache.commons.logging.LogFactory;
  */
 public abstract class AbstractReporter implements Reporter {
   /** Default class logger. */
-  private static final Log log = LogFactory.getLog(AbstractReporter.class);
+  private Log log = LogFactory.getLog(AbstractReporter.class);
 
   /**
    * Prefix added to the start of the messages that are sent to the output
    * device.
    */
   private String prefix;
+
+  /**
+   * Keeps the output there.
+   */
+  private ByteArrayOutputStream output = new ByteArrayOutputStream();
 
   /**
    * {@inheritDoc}
@@ -84,28 +92,28 @@ public abstract class AbstractReporter implements Reporter {
    * {@inheritDoc}
    */
   public void warn(final String message) {
-    getLogger().warn(getPrefix() + " " + message);
+    getLog().warn(getPrefix() + " " + message);
   }
 
   /**
    * {@inheritDoc}
    */
   public void info(final String message) {
-    getLogger().info(getPrefix() + " " + message);
+    getLog().info(getPrefix() + " " + message);
   }
 
   /**
    * {@inheritDoc}
    */
   public void debug(final String message) {
-    getLogger().debug(getPrefix() + " " + message);
+    getLog().debug(getPrefix() + " " + message);
   }
 
   /**
    * {@inheritDoc}
    */
-  public void fatal(final String message) {
-    getLogger().fatal(getPrefix() + " " + message);
+  public void fatal(final String message, final Throwable cause) {
+    getLog().fatal(getPrefix() + " " + message, cause);
   }
 
   /**
@@ -126,14 +134,23 @@ public abstract class AbstractReporter implements Reporter {
    * {@inheritDoc}
    */
   public InputStream getOutput() {
-    return new ByteArrayInputStream("".getBytes());
+    return new ByteArrayInputStream(output.toByteArray());
   }
 
   /**
-   * @return Returns the class' logger.
+   * {@inheritDoc}
    */
-  protected Log getLogger() {
+  public Log getLog() {
     return log;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void setLog(final Log theLog) {
+    Validate.notNull(theLog, "The log cannot be null.");
+
+    log = theLog;
   }
 
   /**
@@ -145,5 +162,22 @@ public abstract class AbstractReporter implements Reporter {
   protected <T> void report(final Operation<T> operation,
       final String message) {
     // Nothing to handle here.
+  }
+
+  /**
+   * Writes to the internal output.
+   *
+   * @param message Message to write. It cannot be null.
+   */
+  protected void write(final String message) {
+    Validate.notNull(message, "The message cannot be null.");
+
+    try {
+      String outputBuffer = message + "\n";
+
+      output.write(outputBuffer.getBytes());
+    } catch (IOException ex) {
+      // Nervermind.
+    }
   }
 }

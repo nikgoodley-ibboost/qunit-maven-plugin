@@ -1,5 +1,8 @@
 package org.moyrax.javascript;
 
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.assertNotNull;
+
 import net.sourceforge.htmlunit.corejs.javascript.Context;
 import net.sourceforge.htmlunit.corejs.javascript.Function;
 import net.sourceforge.htmlunit.corejs.javascript.Scriptable;
@@ -10,7 +13,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.moyrax.javascript.annotation.GlobalFunction;
 import org.moyrax.javascript.annotation.Script;
-import org.springframework.util.Assert;
 
 /**
  * Tests the {@link ScriptComponent} class.
@@ -78,23 +80,23 @@ public class ScriptComponentTest {
     String[] functionNames = bean.getGlobalFunctionNames()
         .toArray(new String[] {});
 
-    Assert.isTrue(ArrayUtils.contains(functionNames, "testProc"));
-    Assert.isTrue(!ArrayUtils.contains(functionNames, "testHiddenProc"));
-    Assert.isTrue(!ArrayUtils.contains(functionNames, "foo"));
+    assertTrue(ArrayUtils.contains(functionNames, "testProc"));
+    assertTrue(!ArrayUtils.contains(functionNames, "testHiddenProc"));
+    assertTrue(!ArrayUtils.contains(functionNames, "foo"));
   }
 
   @Test
   public void testGetClassName() {
     String className = bean.getClassName();
 
-    Assert.isTrue(className.equals("TestScriptableObject"));
+    assertTrue(className.equals("TestScriptableObject"));
   }
 
   @Test
   public void testGetScriptableClass() {
     Class<?> klass = bean.getScriptableClass();
 
-    Assert.isTrue(klass.equals(TestScriptableObject.class));
+    assertTrue(klass.equals(TestScriptableObject.class));
   }
 
   /**
@@ -103,6 +105,6 @@ public class ScriptComponentTest {
    * @param any Some object to assert.
    */
   private static void assertInternal(final Object any) {
-    Assert.notNull(any);
+    assertNotNull(any);
   }
 }

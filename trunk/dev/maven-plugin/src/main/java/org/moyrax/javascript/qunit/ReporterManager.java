@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.commons.logging.Log;
 import org.moyrax.reporting.Operation;
 import org.moyrax.reporting.Reporter;
 import org.moyrax.reporting.Status;
@@ -23,12 +24,6 @@ public class ReporterManager {
   private List<Reporter> reporters;
 
   /**
-   * Prefix added to the start of the messages that are sent to the output
-   * device.
-   */
-  private String prefix;
-
-  /**
    * Creates a new {@link ReporterManager} and initializes the available
    * reporters.
    *
@@ -36,8 +31,8 @@ public class ReporterManager {
    * @param thePrefix Prefix appended to all messages before being sent to the
    *    output device. It can be null or empty.
    */
-  public ReporterManager(final List<Reporter> theReporters) {
-    this(theReporters, "[qunit]");
+  public ReporterManager(final List<Reporter> theReporters, final Log theLog) {
+    this(theReporters, theLog, "[qunit]");
   }
 
   /**
@@ -48,18 +43,18 @@ public class ReporterManager {
    * @param thePrefix Prefix appended to all messages before being sent to the
    *    output device. It can be null or empty.
    */
-  public ReporterManager(final List<Reporter> theReporters,
+  public ReporterManager(final List<Reporter> theReporters, final Log theLog,
       final String thePrefix) {
+
     Validate.notEmpty(theReporters, "The reporters list cannot be null or"
         + " empty.");
 
     reporters = theReporters;
 
     if (thePrefix != null) {
-      prefix = thePrefix;
-
       for (Reporter reporter : reporters) {
         reporter.setPrefix(thePrefix);
+        reporter.setLog(theLog);
       }
     }
   }
@@ -142,9 +137,9 @@ public class ReporterManager {
       message += "no errors";
     }
 
-    // TODO(mmirabelli): Think in an strategy to output results (maybe using
-    // the logging support?)
-    System.out.println(prefix + " " + message);
+    for (Reporter reporter : reporters) {
+      reporter.info(message);
+    }
 
     if (failures > 0) {
       fail();
@@ -184,6 +179,18 @@ public class ReporterManager {
   public void debug(final String message) {
     for (Reporter reporter : reporters) {
       reporter.debug(message);
+    }
+  }
+
+  /**
+   * Writes a debugging message to the output device. By default uses the class
+   * logger.
+   *
+   * @param message Message to write. It can be null or empty.
+   */
+  public void error(final String message, final Throwable cause) {
+    for (Reporter reporter : reporters) {
+      reporter.fatal(message, cause);
     }
   }
 
@@ -238,7 +245,6 @@ public class ReporterManager {
       }
     }
 
-    throw new IllegalStateException(output.toString()
-        + "\n\nTHERE'RE TESTS IN FAILURE");
+    throw new IllegalStateException("THERE'RE TESTS IN FAILURE\n");
   }
 }

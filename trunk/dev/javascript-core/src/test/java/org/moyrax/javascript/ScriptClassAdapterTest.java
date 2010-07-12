@@ -1,5 +1,6 @@
 package org.moyrax.javascript;
 
+import static junit.framework.Assert.assertTrue;
 import java.io.IOException;
 import java.net.URL;
 
@@ -11,7 +12,6 @@ import org.junit.Test;
 import org.moyrax.javascript.annotation.Function;
 import org.moyrax.javascript.annotation.Script;
 import org.moyrax.javascript.instrument.ComponentClassAdapter;
-import org.springframework.util.Assert;
 
 /**
  * Test for the class {@link ComponentClassAdapter}.
@@ -26,7 +26,7 @@ public class ScriptClassAdapterTest {
 
     @Function
     public void testProc(final String foo) {
-      Assert.isTrue(foo.equals(TEST_VALUE));
+      assertTrue(foo.equals(TEST_VALUE));
     }
   };
 
@@ -35,7 +35,7 @@ public class ScriptClassAdapterTest {
   private static class TestPrivateScriptWithDefaultConstructor {
     @Function
     public void testProc(final String foo) {
-      Assert.isTrue(foo.equals(TEST_VALUE));
+      assertTrue(foo.equals(TEST_VALUE));
     }
   };
 
@@ -46,7 +46,7 @@ public class ScriptClassAdapterTest {
 
     @Function
     public void testProc(final String foo) {
-      Assert.isTrue(foo.equals(TEST_VALUE));
+      assertTrue(foo.equals(TEST_VALUE));
     }
   };
 
@@ -55,7 +55,7 @@ public class ScriptClassAdapterTest {
   private static class TestPublicScriptWithDefaultConstructor {
     @Function
     public void testProc(final String foo) {
-      Assert.isTrue(foo.equals(TEST_VALUE));
+      assertTrue(foo.equals(TEST_VALUE));
     }
   };
 

@@ -9,11 +9,12 @@ import java.util.List;
 import org.apache.commons.lang.Validate;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
 import org.moyrax.javascript.qunit.ReporterManager;
 import org.moyrax.javascript.qunit.TestRunner;
-import org.moyrax.reporting.ConsoleReporter;
+import org.moyrax.reporting.LogReporter;
 import org.moyrax.reporting.Reporter;
 
 import com.gargoylesoftware.htmlunit.WebClient;
@@ -75,9 +76,7 @@ public class QUnitPlugin extends AbstractMojo {
   /**
    * Reporting results to the console.
    */
-  private ReporterManager reporter = new ReporterManager(
-      new ArrayList<Reporter>(Arrays.asList(new Reporter[] {
-          new ConsoleReporter() })));
+  private ReporterManager reporter;
 
   /**
    * Container for running tests.
@@ -92,17 +91,27 @@ public class QUnitPlugin extends AbstractMojo {
   
   /** Default constructor. */
   public QUnitPlugin() {
+    ArrayList<Reporter> reporters = 
+      new ArrayList<Reporter>(Arrays.asList(new Reporter[] {
+          new LogReporter() } ));
+
+    reporter = new ReporterManager(reporters, new MojoLogAdapter(getLog()));
     runner = new TestRunner(reporter, browser);
   }
 
   /**
    * Executes this plugin when the build reached the defined phase and goal.
    */
-  public void execute() throws MojoExecutionException {
+  public void execute() throws MojoExecutionException, MojoFailureException {
     initEnvironment();
     loadContextResources();
 
-    client.runTests();
+    try {
+      client.runTests();
+    } catch (Exception ex) {
+      throw new MojoFailureException(getClass().getSimpleName(), "",
+          ex.getMessage());
+    }
   }
 
   /**

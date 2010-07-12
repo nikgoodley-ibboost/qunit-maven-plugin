@@ -96,10 +96,10 @@ public class TestingClient {
 
       try {
         runner.run(ResourceUtils.getResourceInputStream(
-            resource));
+            resource), include);
       } catch (IOException ex) {
-        runner.getReporterManager().info("Error reading test resource: "
-            + resource);
+        runner.getReporterManager().error("Error reading test resource: "
+            + resource, ex);
       }
     }
 

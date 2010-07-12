@@ -2,6 +2,8 @@ package org.moyrax.reporting;
 
 import java.io.InputStream;
 
+import org.apache.commons.logging.Log;
+
 /**
  * This interface must be implemented by any class that wants to be a Reporter.
  * A reporter is a logging unit which traces several operations and address the
@@ -110,8 +112,9 @@ public interface Reporter {
    * class logger.
    *
    * @param message Message to write. It can be null or empty.
+   * @param cause Cause of the fatal exception.
    */
-  void fatal(final String message);
+  void fatal(final String message, final Throwable cause);
 
   /**
    * Returns the prefix used when messages are written to the output device.
@@ -132,4 +135,16 @@ public interface Reporter {
    * @return Returns an {@link InputStream} to read the output buffer.
    */
   InputStream getOutput();
+
+  /**
+   * Returns reporter logger.
+   */
+  Log getLog();
+
+  /**
+   * Sets the reporter logger.
+   *
+   * @param theLog Logger for writing logging results. It cannot be null.
+   */
+  void setLog(final Log theLog);
 }

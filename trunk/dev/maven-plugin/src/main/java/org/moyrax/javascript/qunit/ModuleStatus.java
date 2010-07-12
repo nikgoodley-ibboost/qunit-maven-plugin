@@ -20,7 +20,9 @@ public enum ModuleStatus implements Status<Module> {
 
       Module module = operation.getRelatedObject();
 
-      return "Module started: " + module.getName();
+      String message = "Module started: " + module.getName();
+
+      return message;
     }
   },
 
@@ -34,9 +36,15 @@ public enum ModuleStatus implements Status<Module> {
       Module module = operation.getRelatedObject();
       String timestamp = String.valueOf(module.getTotalTime() / 1000) + " secs.";
 
-      return "Module completed: " + module.getName() + "(" + module.getTotal()
-          + " total, " + module.getFailures() + " failed, "
-          + (module.getTotal() - module.getFailures()) + " passed) " + timestamp;
+      String message = "";
+
+      message += "Module completed: " + module.getName()
+          + "(" + module.getTotal() + " total, "
+          + module.getFailures() + " failed, "
+          + (module.getTotal() - module.getFailures()) + " passed) "
+          + timestamp;
+
+      return message;
     }
   },
 
@@ -47,7 +55,7 @@ public enum ModuleStatus implements Status<Module> {
     public String getMessage(final Operation<Module> operation) {
       String message = ModuleStatus.SUCCEED.getMessage(operation);
 
-      return message + " <<<<<<<<<< THERE'RE TESTS IN FAILURE!";
+      return message + " <<<<<<<<<< FAILED!";
     }
   },
 
