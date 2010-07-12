@@ -4,56 +4,37 @@
 
 TODO
 
-== Basic test (version 1.1) ==
+== Basic test ==
 
-The version 1.1 uses Env.js to create the browser environment. This way was deprecated in the version 1.2 and now the plugin uses HtmlUnit instead, since it provides a more consistent and configurable environment.
-
-{{{
-test("test1", 3, function() {
-  print("Executing test1...");
-  ok( true, "test running before jquery loads");
-});
-
-print("HERE2");
-
-test("test2", function() {
-  print("HERE3");
-  ok( true, "test running after jquery loads");
-});
-
-include("lib:/env.js");
-
-includePage({
-  url : "/path/to/my/test.html",
-  logLevel : Envjs.NONE
-});
-}}}
-
-== Basic test (version 1.2) ==
-
-This test shows how to set up a simple page and use QUnit to run some tests. It also add the PrototypeFramework library to be used in the future.
+This test shows how to set up a simple page and use QUnit to run some tests. It
+also add the PrototypeFramework library to be used in the future.
 
 {{{
 <html>
-  <body>
+  <head>
     <script type="text/javascript">
-        include("lib:/prototype.js");
+      include("lib:/prototype.js");
 
-        module("core");
-          /* This test will fail because need an additional assertion. */
-          test("test1", function() {
-            expect(3);
+      module("core");
+        /* This test will fail because need an additional assertion. */
+        test("test1", function() {
+          expect(3);
 
-            ok( true, "test running before jquery loads");
-            ok( true, "test running before jquery loads");
-          });
-  
-          /* This test will pass successfully. */
-          test("test2", function() {
-            ok( true, "test running after jquery loads");
-          });
+          ok( true, "test running before jquery loads");
+          ok( true, "test running before jquery loads");
+        });
+
+        /* This test will pass successfully. */
+        test("test2", function() {
+          ok( true, "test running after jquery loads");
+        });
     </script>
+  </head>
+  <body>
+    <!-- This is the unique required constraint to make QMP work as expected.
+      QUnit will report part of the tests result in this special tag.-->
+    <div id="qunit-tests" class="result"></div>
   </body>
 </html>
-
 }}}
+
