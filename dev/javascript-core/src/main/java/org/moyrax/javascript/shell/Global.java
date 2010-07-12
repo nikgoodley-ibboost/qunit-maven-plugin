@@ -119,7 +119,7 @@ public class Global extends ImporterTopLevel {
     if (!scopes.containsKey(scope.getClassName())) {
       scopes.put(scope.getClassName(), new Global(scope));
     } else {
-      log.warn("Initialization warning", new IllegalArgumentException(
+      log.debug("Initialization warning", new IllegalArgumentException(
           "The scope is already registered: " + scope.getClassName()));
     }
   }
