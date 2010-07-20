@@ -17,25 +17,9 @@ import org.moyrax.javascript.ContextClassLoader;
  */
 public class EnvironmentConfiguration {
   /**
-   * File that contains the js-test-driver configuration. By default, it will
-   * be jsTestDriver.conf.
-   */
-  private String configFile;
-
-  /**
-   * Directory that will be used by the testing server to write the results.
-   */
-  private String testOutputDirectory;
-
-  /**
-   * Port used by the testing server. Default is 3137.
-   */
-  private Integer serverPort = 3137;
-
-  /**
    * Base path of the project that is using this plugin.
    */
-  private URL projectBasePath;
+  private File targetPath;
 
   /**
    * {@link ClassLoader} used to lookup for exportable resources.
@@ -61,106 +45,6 @@ public class EnvironmentConfiguration {
    * List of packages that will be parsed to search for JavaScript components.
    */
   private String[] lookupPackages;
-
-  /**
-   * Returns the list of parameters configured in this context in the format
-   * that could be passed to the server main class.
-   */
-  public String[] getServerParameters() {
-    String parameters = "";
-
-    if (serverPort <= 0) {
-      throw new IllegalArgumentException("The port must be a number greater " +
-          "than 0.");
-    }
-
-    parameters += "--port " + serverPort;
-
-    return parameters.split(" ");
-  }
-
-  /**
-   * Returns the list of parameters configured in this context in the format
-   * that could be passed to the client main class.
-   */
-  public String[] getClientParameters() {
-    String parameters = "";
-
-    if (configFile != null) {
-      parameters += "--config " + configFile;
-    }
-
-    if (testOutputDirectory != null) {
-      parameters += " --testOutput " + testOutputDirectory;
-    }
-
-    parameters += " --server " + this.getLocalUrl();
-    parameters += " --tests all --verbose --captureConsole";
-
-    return parameters.split(" ");
-  }
-
-  /**
-   * Returns the configuration file. For more information about this file,
-   * please look at the following url:
-   *
-   * {@linkplain http://code.google.com/p/js-test-driver/wiki/ConfigurationFile}
-   */
-  public String getConfigFile() {
-    return configFile;
-  }
-
-  /**
-   * Sets the configuration file used in this context.
-   *
-   * @param configFile New path and file name of the configuration file.
-   */
-  public void setConfigFile(final String configFile) {
-    this.configFile = configFile;
-  }
-
-  /**
-   * Returns the directory that the testing server will use to write the
-   * results.
-   */
-  public String getTestOutputDirectory() {
-    return testOutputDirectory;
-  }
-
-  /**
-   * Sets the directory that the testing server will use to write the results.
-   *
-   * @param testOutputDirectory New output directory.
-   */
-  public void setTestOutputDirectory(final String testOutputDirectory) {
-    this.testOutputDirectory = testOutputDirectory;
-  }
-
-  /**
-   * Returns the port number that the testing server will use to listen testing
-   * requests.
-   */
-  public Integer getServerPort() {
-    return serverPort;
-  }
-
-  /**
-   * Sets the port that the testing server will use to listen testing requests.
-   *
-   * @param serverPort Port number. It cannot be null.
-   */
-  public void setServerPort(final Integer serverPort) {
-    Validate.notNull(serverPort, "The server port cannot be null.");
-
-    this.serverPort = serverPort;
-  }
-
-  /**
-   * Returns the url where the testing server is listening.
-   */
-  public String getLocalUrl() {
-    return "http://127.0.0.1:" + serverPort;
-  }
 
   /**
    * Sets the list of patterns to locate testing resources. All resources that
@@ -230,23 +114,23 @@ public class EnvironmentConfiguration {
    *
    * @return Returns the project's base path.
    */
-  public URL getProjectBasePath() {
-    if (projectBasePath == null) {
+  public File getTargetPath() {
+    if (targetPath == null) {
       throw new IllegalStateException("The project base path is not defined.");
     }
 
-    return projectBasePath;
+    return targetPath;
   }
 
   /**
    * Sets the base path of the current project.
    *
-   * @param basePath Base path of the project. It cannot be null or empty.
+   * @param theTargetPath Base path of the project. It cannot be null or empty.
    */
-  public void setProjectBasePath(final URL basePath) {
-    Validate.notNull(basePath, "The base path cannot be null.");
+  public void setTargetPath(final File theTargetPath) {
+    Validate.notNull(theTargetPath, "The base path cannot be null.");
 
-    projectBasePath = basePath;
+    targetPath = theTargetPath;
   }
 
   /**
@@ -260,10 +144,10 @@ public class EnvironmentConfiguration {
     try {
       if (classLoader == null) {
         URL[] urls = new URL[] {
-            new URL(getProjectBasePath().toExternalForm() +
+            new URL(getTargetPath().toURI().toURL().toExternalForm() +
                 "test-classes/"),
     
-            new URL(getProjectBasePath().toExternalForm() +
+            new URL(getTargetPath().toURI().toURL().toExternalForm() +
                 "classes/")
         };
 

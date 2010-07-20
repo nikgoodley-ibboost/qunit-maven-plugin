@@ -66,6 +66,8 @@ public class TestRunner {
 
   public void reportAll() {
     for (TestHandler handler : handlers) {
+      reporterManager.init(handler);
+
       reporterManager.info(StringUtils.leftPad("", 80, ">"));
       reporterManager.info("Executing " + handler.getTestFile().getName());
       reporterManager.info(StringUtils.leftPad("", 60, "-"));
@@ -89,7 +91,7 @@ public class TestRunner {
         reporterManager.info(StringUtils.leftPad("", 60, "-"));
       }
 
-      reporterManager.done(handler.getTotal(), handler.getFailures());
+      reporterManager.done(handler);
     }
   }
 

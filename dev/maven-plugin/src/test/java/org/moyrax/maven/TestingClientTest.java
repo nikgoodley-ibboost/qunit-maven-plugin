@@ -62,8 +62,7 @@ public class TestingClientTest {
   public void testApplication() throws Exception {
     final TestingClient testDriverClient = new TestingClient(runner,context);
 
-    context.setTestOutputDirectory("test/");
-    context.setProjectBasePath(new File(".").toURI().toURL());
+    context.setTargetPath(new File("."));
 
     final String baseDirectory = System.getProperty("user.dir");
     final FileSet tests = new FileSet();

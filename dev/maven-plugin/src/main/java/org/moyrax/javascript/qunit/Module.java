@@ -69,39 +69,10 @@ public class Module {
   }
 
   /**
-   * Returns a test by its name.
-   *
-   * @param name {String} Required test name.
-   * @return Returns the required QUnitTest, or null if it does not exists in
-   *    this module.
-   */
-  public TestCase getTestByName (final String name) {
-    if (tests.containsKey(name)) {
-      return tests.get(name);
-    }
-
-    return null;
-  }
-
-  /**
    * Returns a list with all tests in this module.
    */
   public List<TestCase> getTests() {
     return new ArrayList<TestCase>(tests.values());
-  }
-
-  /**
-   * Determines if a test exists in this module.
-   *
-   * @param name {String} Name of the test to check.
-   * @return Returns <code>true</code> if the test exists, false otherwise.
-   */
-  public boolean hasTest(final String name) {
-    return tests.containsKey(name);
-  }
-
-  public boolean hasFailed() {
-    return getFailed().size() > 0;
   }
 
   /**

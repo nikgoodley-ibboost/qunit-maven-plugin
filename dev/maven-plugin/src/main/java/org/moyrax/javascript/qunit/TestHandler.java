@@ -13,6 +13,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.moyrax.reporting.ReportInfo;
 
 import com.gargoylesoftware.htmlunit.ScriptException;
 import com.gargoylesoftware.htmlunit.WebClient;
@@ -25,7 +26,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
  * @author Matias Mirabelli &lt;matias.mirabelli@globant.com&gt;
  * @since 0.1.2
  */
-public class TestHandler {
+public class TestHandler extends ReportInfo {
   /** Default class logger. */
   private static final Log log = LogFactory.getLog(TestHandler.class);
 
@@ -168,6 +169,14 @@ public class TestHandler {
    */
   public File getTestFile() {
     return testFile;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String getName() {
+    return getTestFile().getName();
   }
 
   /**
