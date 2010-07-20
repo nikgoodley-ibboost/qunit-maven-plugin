@@ -1,7 +1,6 @@
 package org.moyrax.maven;
 
 import java.io.File;
-import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -15,6 +14,7 @@ import org.apache.maven.shared.model.fileset.util.FileSetManager;
 import org.moyrax.javascript.qunit.ReporterManager;
 import org.moyrax.javascript.qunit.TestRunner;
 import org.moyrax.reporting.LogReporter;
+import org.moyrax.reporting.PlainFileReporter;
 import org.moyrax.reporting.Reporter;
 
 import com.gargoylesoftware.htmlunit.WebClient;
@@ -47,21 +47,14 @@ public class QUnitPlugin extends AbstractMojo {
    *
    * @parameter
    */
-  public List<String> components = new ArrayList<String>();
-
-  /**
-   * Port in which the testing server will be started. Default is 3137.
-   *
-   * @parameter default-value="3137"
-   */
-  private Integer port;
+  private List<String> components = new ArrayList<String>();
 
   /**
    * The greeting to display.
    *
    * @parameter expression="${project.build.directory}" default-value="${project.build.directory}"
    */
-  private File projectBasePath;
+  private File targetPath;
 
   /**
    * Object to ask the files specified in the plugin configuration.
@@ -88,21 +81,19 @@ public class QUnitPlugin extends AbstractMojo {
    */
   private TestRunner runner;
 
-  
-  /** Default constructor. */
-  public QUnitPlugin() {
-    ArrayList<Reporter> reporters = 
-      new ArrayList<Reporter>(Arrays.asList(new Reporter[] {
-          new LogReporter() } ));
-
-    reporter = new ReporterManager(reporters, new MojoLogAdapter(getLog()));
-    runner = new TestRunner(reporter, browser);
-  }
-
   /**
    * Executes this plugin when the build reached the defined phase and goal.
    */
   public void execute() throws MojoExecutionException, MojoFailureException {
+    ArrayList<Reporter> reporters = 
+      new ArrayList<Reporter>(Arrays.asList(new Reporter[] {
+          new LogReporter(),
+          new PlainFileReporter(getReportsDirectory())
+      }));
+
+    reporter = new ReporterManager(reporters, new MojoLogAdapter(getLog()));
+    runner = new TestRunner(reporter, browser);
+
     initEnvironment();
     loadContextResources();
 
@@ -115,17 +106,17 @@ public class QUnitPlugin extends AbstractMojo {
   }
 
   /**
-   * Sets the project's base path.
+   * Sets the build target path.
    *
-   * @param basePath Base path. It cannot be null or empty.
+   * @param theTargetPath Base path. It cannot be null or empty.
    */
-  public void setProjectBasePath(final String basePath) {
-    Validate.notEmpty(basePath, "The base path cannot be null or empty.");
+  public void setTargetPath(final String theTargetPath) {
+    Validate.notEmpty(theTargetPath, "The base path cannot be null or empty.");
 
-    projectBasePath = new File(basePath);
+    targetPath = new File(theTargetPath);
 
-    Validate.isTrue(projectBasePath.exists() &&
-        projectBasePath.isDirectory(), "The base path is not a valid "
+    Validate.isTrue(targetPath.exists() &&
+        targetPath.isDirectory(), "The base path is not a valid "
         + "directory.");
   }
 
@@ -142,17 +133,6 @@ public class QUnitPlugin extends AbstractMojo {
   }
 
   /**
-   * Adds a new entry to the context path.
-   *
-   * @param entry Entry to add. It cannot be null.
-   */
-  public void addContextPath(final Entry entry) {
-    Validate.notNull(entry, "The entry cannot be null.");
-
-    contextPath.add(entry);
-  }
-
-  /**
    * Adds a new search path to scan for JavaScript components.
    *
    * @param classPath Classpath to search for resources. It cannot be null or
@@ -162,17 +142,6 @@ public class QUnitPlugin extends AbstractMojo {
     Validate.notEmpty(classPath, "The class path cannot be null or empty.");
 
     components.add(classPath);
-  }
-
-  /**
-   * Sets the testing server port.
-   *
-   * @param aPort The testing server port. It cannot be null.
-   */
-  public void setServerPort(Integer aPort) {
-    Validate.notNull(aPort, "The port cannot be null.");
-
-    port = aPort;
   }
 
   /**
@@ -195,27 +164,34 @@ public class QUnitPlugin extends AbstractMojo {
   private void initEnvironment() {
     EnvironmentConfiguration env = new EnvironmentConfiguration();
 
-    try {
-      env.setServerPort(port);
-      env.setFiles(testResources.getDirectory(),
-          fileSetManager.getIncludedFiles(testResources),
-          fileSetManager.getExcludedFiles(testResources));
+    env.setFiles(testResources.getDirectory(),
+        fileSetManager.getIncludedFiles(testResources),
+        fileSetManager.getExcludedFiles(testResources));
 
-      env.setLookupPackages(components.toArray(new String[] {}));
-      env.setProjectBasePath(projectBasePath.toURI().toURL());
+    env.setLookupPackages(components.toArray(new String[] {}));
+    env.setTargetPath(targetPath);
 
-      for (Entry entry : contextPath) {
-        ContextPathBuilder.addDefinition(entry.files.getDirectory(),
-            entry.files.getIncludesArray(), entry.files.getExcludesArray());
-      }
-
-    } catch (MalformedURLException e) {
-      throw new RuntimeException("Cannot retrieve the project build "
-          + "directory.");
+    for (Entry entry : contextPath) {
+      ContextPathBuilder.addDefinition(entry.files.getDirectory(),
+          entry.files.getIncludesArray(), entry.files.getExcludesArray());
     }
 
     ContextPathBuilder.build();
 
     client = new TestingClient(runner, env);
+  }
+
+  /**
+   * Returns the directory where the reports will be written.
+   */
+  private String getReportsDirectory() {
+    File directory = new File(targetPath.getAbsolutePath(),
+        "target/qunit-reports");
+
+    if (!directory.exists()) {
+      directory.mkdirs();
+    }
+
+    return directory.getAbsolutePath();
   }
 }

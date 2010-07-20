@@ -8,6 +8,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.logging.Log;
 import org.moyrax.reporting.Operation;
+import org.moyrax.reporting.ReportInfo;
+import org.moyrax.reporting.ReportStatus;
 import org.moyrax.reporting.Reporter;
 import org.moyrax.reporting.Status;
 
@@ -118,14 +120,30 @@ public class ReporterManager {
   }
 
   /**
+   * Initializes the reporting for the specified {@link TestHandler}.
+   *
+   * @param handler Handler which executed the current test report. It cannot
+   *    be null.
+   */
+  public void init(final TestHandler handler) {
+    Validate.notNull(handler, "The test handler cannot be null.");
+
+    report(new Operation<ReportInfo>(handler, handler.getName()),
+        ReportStatus.STARTED);
+  }
+
+  /**
    * Finalizes the reporting.
    *
-   * @param total Number of tests executed. It must be greater than or equals
-   *    to 0.
-   * @param failures Number of tests in failure. It must be greater than or
-   *    equals to 0.
+   * @param handler Handler which executed the current test report. It cannot
+   *    be null.
    */
-  public void done(final long total, final long failures) {
+  public void done(final TestHandler handler) {
+    Validate.notNull(handler, "The test handler cannot be null.");
+
+    int total = handler.getTotal();
+    int failures = handler.getFailures();
+
     Validate.isTrue(total >= 0, "The total tests must be greater than 0.");
     Validate.isTrue(failures >= 0, "The total tests must be greater than 0.");
 
@@ -144,6 +162,9 @@ public class ReporterManager {
     if (failures > 0) {
       fail();
     }
+
+    report(new Operation<ReportInfo>(handler, handler.getName()),
+        ReportStatus.DONE);
   }
 
   /**

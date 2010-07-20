@@ -16,14 +16,30 @@ public class Operation<T> {
   private T relatedObject;
 
   /**
+   * Returns the operation's name. It can be null or empty.
+   */
+  private String name;
+
+  /**
    * Creates a new operation and sets the bound object.
    *
    * @param theRelatedObject Object bound to this operation. It cannot be null.
    */
   public Operation(final T theRelatedObject) {
+    this(theRelatedObject, null);
+  }
+
+  /**
+   * Creates a new operation and sets the bound object.
+   *
+   * @param theRelatedObject Object bound to this operation. It cannot be null.
+   * @param aName The operation's name. It can be null or empty.
+   */
+  public Operation(final T theRelatedObject, final String aName) {
     Validate.notNull(theRelatedObject, "The related object cannot be null.");
 
     this.relatedObject = theRelatedObject;
+    this.name = aName;
   }
 
   /**
@@ -43,5 +59,12 @@ public class Operation<T> {
    */
   public void setRelatedObject(final T theRelatedObject) {
     this.relatedObject = theRelatedObject;
+  }
+
+  /**
+   * @return Returns the operation's name.
+   */
+  public String getName() {
+    return name;
   }
 }

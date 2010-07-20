@@ -20,10 +20,9 @@ public class QUnitPluginTest {
     tests.setDirectory(baseDirectory + "/src/test/resources/org/moyrax/");
     tests.addInclude("**/*test.html");
 
-    runner.setProjectBasePath(baseDirectory);
+    runner.setTargetPath(baseDirectory);
     runner.setTestResources(tests);
     runner.addComponentSearchPath("classpath:/org/moyrax/javascript/common/**");
-    runner.setServerPort(1337);
 
     runner.execute();
   }

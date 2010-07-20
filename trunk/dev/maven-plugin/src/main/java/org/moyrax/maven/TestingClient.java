@@ -22,8 +22,8 @@ import com.gargoylesoftware.htmlunit.ScriptException;
  * This class uses HTMLUnit to initialize a browser environment which will be
  * used to be captured by the js-test-driver server.
  *
- * @author Matias Mirabelli <lumen.night@gmail.com>
- * @since 1.2
+ * @author Matias Mirabelli &lt;lumen.night@gmail.com&gt;
+ * @since 1.2.0
  */
 public class TestingClient {
   /** Default logger for this class. */
@@ -113,7 +113,7 @@ public class TestingClient {
    * @param classPath Resource located in the classpath. It cannot be null or
    *    empty.
    */
-  public void addGlobalResource(final String classPath) {
+  protected void addGlobalResource(final String classPath) {
     Validate.notEmpty(classPath, "The resource classpath cannot be null.");
 
     engine.addGlobalResource(classPath);
