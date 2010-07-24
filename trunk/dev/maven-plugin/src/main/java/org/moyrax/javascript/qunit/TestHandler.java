@@ -13,7 +13,9 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.moyrax.reporting.ReportInfo;
+import org.moyrax.reporting.ReportEntry;
+import org.moyrax.reporting.TestCase;
+import org.moyrax.reporting.TestSuite;
 
 import com.gargoylesoftware.htmlunit.ScriptException;
 import com.gargoylesoftware.htmlunit.WebClient;
@@ -26,7 +28,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
  * @author Matias Mirabelli &lt;matias.mirabelli@globant.com&gt;
  * @since 0.1.2
  */
-public class TestHandler extends ReportInfo {
+public class TestHandler extends ReportEntry {
   /** Default class logger. */
   private static final Log log = LogFactory.getLog(TestHandler.class);
 
@@ -45,7 +47,7 @@ public class TestHandler extends ReportInfo {
    * Pattern to extract the tests summary.
    */
   private Pattern summary = Pattern.compile(
-      "(.*:)?\\s*(.+) \\((.+), (.+), (.+)\\)");
+  "(.*:)?\\s*(.+) \\((.+), (.+), (.+)\\)");
 
   /**
    * Container to run the tests.
@@ -60,8 +62,8 @@ public class TestHandler extends ReportInfo {
   /**
    * List of modules in the test file.
    */
-  private HashMap<String, Module> modules =
-      new HashMap<String, Module>();
+  private HashMap<String, TestSuite> modules =
+    new HashMap<String, TestSuite>();
 
   /**
    * Timestamp to calculate the amount of execution time.
@@ -109,9 +111,9 @@ public class TestHandler extends ReportInfo {
       startTime = new Date().getTime();
 
       browser.setJavaScriptEnabled(true);
-  
+
       HtmlPage page = browser.getPage("file:///" + testFile.getAbsolutePath());
-  
+
       // We need to wait the DOM to be populated. HTMLUnit bug?
       Thread.sleep(500);
 
@@ -160,8 +162,8 @@ public class TestHandler extends ReportInfo {
    *
    * @return The list of executed modules.
    */
-  public List<Module> getModules() {
-    return new ArrayList<Module>(modules.values());
+  public List<TestSuite> getModules() {
+    return new ArrayList<TestSuite>(modules.values());
   }
 
   /**
@@ -176,6 +178,16 @@ public class TestHandler extends ReportInfo {
    */
   @Override
   public String getName() {
+    String name = StringUtils.substringBeforeLast(getTestFile().getName(), ".");
+
+    return name;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String getSourceName() {
     return getTestFile().getName();
   }
 
@@ -192,7 +204,7 @@ public class TestHandler extends ReportInfo {
 
     List<HtmlElement> testResults = element.getElementsByTagName("li");
 
-    Module currentModule = null;
+    TestSuite currentModule = null;
 
     for (HtmlElement result : testResults) {
       Matcher matcher = summary.matcher(result.asText());
@@ -200,7 +212,7 @@ public class TestHandler extends ReportInfo {
       List<HtmlElement> testOutput = result.getElementsByTagName("li");
 
       if (matcher.lookingAt()) {
-        Module module = getModule(matcher);
+        TestSuite module = getModule(matcher);
         TestCase test = buildTest(matcher);
 
         if (currentModule != module) {
@@ -258,7 +270,7 @@ public class TestHandler extends ReportInfo {
    * @return If the module already exists, return the existing module,
    *    otherwise returns the created module from the matcher's fields.
    */
-  private Module getModule(final Matcher matcher) {
+  private TestSuite getModule(final Matcher matcher) {
     Validate.notNull(matcher, "The matcher cannot be null.");
 
     String moduleName = "default";
@@ -272,7 +284,7 @@ public class TestHandler extends ReportInfo {
     }
 
     if (!modules.containsKey(moduleName)) {
-      modules.put(moduleName, new Module(moduleName));
+      modules.put(moduleName, new TestSuite(moduleName));
     }
 
     return modules.get(moduleName);

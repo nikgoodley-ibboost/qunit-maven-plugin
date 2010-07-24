@@ -2,7 +2,6 @@ package org.moyrax.maven;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang.Validate;
@@ -11,11 +10,8 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
-import org.moyrax.javascript.qunit.ReporterManager;
+import org.moyrax.javascript.qunit.QUnitReporter;
 import org.moyrax.javascript.qunit.TestRunner;
-import org.moyrax.reporting.LogReporter;
-import org.moyrax.reporting.PlainFileReporter;
-import org.moyrax.reporting.Reporter;
 
 import com.gargoylesoftware.htmlunit.WebClient;
 
@@ -69,7 +65,7 @@ public class QUnitPlugin extends AbstractMojo {
   /**
    * Reporting results to the console.
    */
-  private ReporterManager reporter;
+  private QUnitReporter reporter;
 
   /**
    * Container for running tests.
@@ -85,13 +81,8 @@ public class QUnitPlugin extends AbstractMojo {
    * Executes this plugin when the build reached the defined phase and goal.
    */
   public void execute() throws MojoExecutionException, MojoFailureException {
-    ArrayList<Reporter> reporters = 
-      new ArrayList<Reporter>(Arrays.asList(new Reporter[] {
-          new LogReporter(),
-          new PlainFileReporter(getReportsDirectory())
-      }));
-
-    reporter = new ReporterManager(reporters, new MojoLogAdapter(getLog()));
+    reporter = new QUnitReporter(getReportsDirectory(),
+        new MojoLogAdapter(getLog()));
     runner = new TestRunner(reporter, browser);
 
     initEnvironment();
@@ -149,8 +140,8 @@ public class QUnitPlugin extends AbstractMojo {
    */
   private void loadContextResources() {
     final String[] dependencies = new String[] {
-      /* QUnit testing framework. */
-      "org/moyrax/javascript/lib/qunit.js"
+        /* QUnit testing framework. */
+        "org/moyrax/javascript/lib/qunit.js"
     };
 
     for (int i = 0; i < dependencies.length; i++) {
@@ -186,7 +177,7 @@ public class QUnitPlugin extends AbstractMojo {
    */
   private String getReportsDirectory() {
     File directory = new File(targetPath.getAbsolutePath(),
-        "target/qunit-reports");
+    "target/qunit-reports");
 
     if (!directory.exists()) {
       directory.mkdirs();

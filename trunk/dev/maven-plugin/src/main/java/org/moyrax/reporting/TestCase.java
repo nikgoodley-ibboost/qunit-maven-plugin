@@ -1,4 +1,4 @@
-package org.moyrax.javascript.qunit;
+package org.moyrax.reporting;
 
 import java.util.Date;
 
@@ -10,20 +10,9 @@ import org.apache.commons.lang.Validate;
  * @author Matias Mirabelli <lumen.night@gmail.com>
  * @since 1.2
  */
-public class TestCase {
+public class TestCase extends ReportEntry {
   /** Timestamp to calculate the total time. */
   private long startTime;
-
-  /**
-   * Name of this test.
-   */
-  private String name;
-
-  /**
-   * Module which this test belongs to. It may be null if this test is not
-   * inside a module.
-   */
-  private Module module;
 
   /**
    * Number of total assertions in this test.
@@ -51,8 +40,15 @@ public class TestCase {
    */
   private long totalTime;
 
+  /**
+   * Module which this test belongs to. It may be null if this test is not
+   * inside a module.
+   */
+  private TestSuite suite;
+
   /** Keeps the output buffer. */
   private StringBuilder output = new StringBuilder();
+
 
   /** Default constructor. Required by Rhino. */
   public TestCase() {}
@@ -63,9 +59,7 @@ public class TestCase {
    * @param aName Test name. It cannot be null or empty.
    */
   public TestCase(final String aName) {
-    Validate.notEmpty(aName, "The test name cannot be null or empty.");
-
-    name = aName;
+    super(aName);
   }
 
   /**
@@ -75,7 +69,7 @@ public class TestCase {
    * @param theFailures Number of failed assertions. It must be greater than or
    *    equals to 0.
    */
-  public void done(int asserts, int theFailures) {
+  public void done(final int asserts, final int theFailures) {
     Validate.isTrue(asserts >= 0, "The number of asserts must be greater"
         + " than or equals to 0");
     Validate.isTrue(theFailures >= 0, "The number of failures must be greater"
@@ -109,7 +103,7 @@ public class TestCase {
    *
    * @param startTimestamp Start time reference. It must be greater than 0.
    */
-  public void start(long startTimestamp) {
+  public void start(final long startTimestamp) {
     Validate.isTrue(startTimestamp >= 0, "The number of asserts must be"
         + " greater than 0");
 
@@ -133,30 +127,6 @@ public class TestCase {
    */
   public String getOutput() {
     return output.toString();
-  }
-
-  /**
-   * Returns the name of this test.
-   */
-  public String getName() {
-    return name;
-  }
-
-  /**
-   * Returns the Module which this test belongs to. It may be null if this test
-   * is not inside a module.
-   */
-  public Module getModule() {
-    return module;
-  }
-
-  /**
-   * Sets the module related to this test.
-   *
-   * @param aModule Module which this test belongs to.
-   */
-  public void setModule(final Module aModule) {
-    module = aModule;
   }
 
   /**
@@ -184,6 +154,34 @@ public class TestCase {
    */
   public int getExecutions() {
     return executions;
+  }
+
+  @Override
+  public String getGroup() {
+    String group = null;
+
+    if (getSuite() != null) {
+      group = getSuite().getName();
+    }
+
+    return group;
+  }
+
+  /**
+   * Returns the suite which this test belongs to. It may be null if this test
+   * is not inside a {@link TestSuite}.
+   */
+  public TestSuite getSuite() {
+    return suite;
+  }
+
+  /**
+   * Sets the suite related to this test.
+   *
+   * @param theSuite Suite which this test belongs to.
+   */
+  public void setSuite(final TestSuite theSuite) {
+    suite = theSuite;
   }
 
   /**
