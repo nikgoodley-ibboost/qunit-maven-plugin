@@ -9,7 +9,7 @@ import org.apache.commons.lang.Validate;
  * @author Matias Mirabelli &lt;lumen.night@gmail.com&gt;
  * @since 0.2.0
  */
-public class Operation<T> {
+public class Operation<T extends ReportEntry> {
   /**
    * Object bound to this operation.
    */

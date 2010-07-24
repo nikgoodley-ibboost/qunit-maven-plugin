@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.NumberFormat;
 
 import org.apache.commons.lang.Validate;
 import org.apache.commons.logging.Log;
@@ -21,6 +22,9 @@ public abstract class AbstractReporter implements Reporter {
   /** Default class logger. */
   private Log log = LogFactory.getLog(AbstractReporter.class);
 
+  /** Formatter for numeric values. */
+  private NumberFormat numberFormat = NumberFormat.getInstance();
+
   /**
    * Prefix added to the start of the messages that are sent to the output
    * device.
@@ -35,7 +39,7 @@ public abstract class AbstractReporter implements Reporter {
   /**
    * {@inheritDoc}
    */
-  public <T> void started(final Operation<T> operation,
+  public <T extends ReportEntry> void started(final Operation<T> operation,
       final Status<T> status) {
     report(operation, status.getMessage(operation));
   }
@@ -43,7 +47,7 @@ public abstract class AbstractReporter implements Reporter {
   /**
    * {@inheritDoc}
    */
-  public <T> void stopped(final Operation<T> operation,
+  public <T extends ReportEntry> void stopped(final Operation<T> operation,
       final Status<T> status) {
     report(operation, status.getMessage(operation));
   }
@@ -51,7 +55,7 @@ public abstract class AbstractReporter implements Reporter {
   /**
    * {@inheritDoc}
    */
-  public <T> void suspended(final Operation<T> operation,
+  public <T extends ReportEntry> void suspended(final Operation<T> operation,
       final Status<T> status) {
     report(operation, status.getMessage(operation));
   }
@@ -59,7 +63,7 @@ public abstract class AbstractReporter implements Reporter {
   /**
    * {@inheritDoc}
    */
-  public <T> void skipped(final Operation<T> operation,
+  public <T extends ReportEntry> void skipped(final Operation<T> operation,
       final Status<T> status) {
     report(operation, status.getMessage(operation));
   }
@@ -67,7 +71,7 @@ public abstract class AbstractReporter implements Reporter {
   /**
    * {@inheritDoc}
    */
-  public <T> void succeed(final Operation<T> operation,
+  public <T extends ReportEntry> void succeed(final Operation<T> operation,
       final Status<T> status) {
     report(operation, status.getMessage(operation));
   }
@@ -75,7 +79,7 @@ public abstract class AbstractReporter implements Reporter {
   /**
    * {@inheritDoc}
    */
-  public <T> void failed(final Operation<T> operation,
+  public <T extends ReportEntry> void failed(final Operation<T> operation,
       final Status<T> status) {
     report(operation, status.getMessage(operation));
   }
@@ -83,7 +87,7 @@ public abstract class AbstractReporter implements Reporter {
   /**
    * {@inheritDoc}
    */
-  public <T> void error(final Operation<T> operation,
+  public <T extends ReportEntry> void error(final Operation<T> operation,
       final Status<T> status) {
     report(operation, status.getMessage(operation));
   }
@@ -159,7 +163,7 @@ public abstract class AbstractReporter implements Reporter {
    * @param operation Operation to report. It cannot be null.
    * @param message Operation related message. It cannot be null.
    */
-  protected <T> void report(final Operation<T> operation,
+  protected <T extends ReportEntry> void report(final Operation<T> operation,
       final String message) {
     // Nothing to handle here.
   }
@@ -179,5 +183,16 @@ public abstract class AbstractReporter implements Reporter {
     } catch (IOException ex) {
       // Nervermind.
     }
+  }
+
+  /**
+   * Formats the elapsed time of a report entry.
+   *
+   * @param totalTime Total elapsed time.
+   *
+   * @return Returns the formatted string.
+   */
+  protected String elapsedTimeAsString(final long totalTime) {
+    return numberFormat.format((double) totalTime / 1000);
   }
 }

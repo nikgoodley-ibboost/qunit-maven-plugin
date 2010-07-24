@@ -5,8 +5,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.Validate;
@@ -14,8 +12,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
 import org.junit.Test;
-import org.moyrax.reporting.LogReporter;
-import org.moyrax.reporting.Reporter;
 
 import com.gargoylesoftware.htmlunit.WebClient;
 
@@ -28,9 +24,9 @@ import com.gargoylesoftware.htmlunit.WebClient;
 public class TestRunnerTest {
   private static final Log log = LogFactory.getLog(TestRunnerTest.class);
 
-  private ReporterManager reporter = new ReporterManager(
-      new ArrayList<Reporter>(Arrays.asList(new Reporter[] {
-          new LogReporter() })), log);
+  private QUnitReporter reporter = new QUnitReporter(
+      System.getProperty("java.io.tmpdir"), log);
+
   /**
    * Container for running tests.
    */
@@ -66,7 +62,7 @@ public class TestRunnerTest {
   }
 
   private File copyTemp(final String classPath, final File outputFile)
-      throws IOException {
+  throws IOException {
 
     InputStream input = getClass().getResourceAsStream(classPath);
 

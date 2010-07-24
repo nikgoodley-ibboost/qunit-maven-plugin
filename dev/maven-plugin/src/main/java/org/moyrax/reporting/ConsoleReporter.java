@@ -44,7 +44,7 @@ public class ConsoleReporter extends AbstractReporter {
    * </p>
    */
   @Override
-  protected <T> void report(final Operation<T> operation,
+  protected <T extends ReportEntry> void report(final Operation<T> operation,
       final String message) {
 
     Validate.notNull(operation, "The operation cannot be null.");

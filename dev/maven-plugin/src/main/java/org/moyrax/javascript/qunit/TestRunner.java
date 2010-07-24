@@ -10,9 +10,8 @@ import java.util.List;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.moyrax.javascript.qunit.Module;
-import org.moyrax.javascript.qunit.TestCase;
-import org.moyrax.javascript.qunit.TestHandler;
+import org.moyrax.reporting.TestCase;
+import org.moyrax.reporting.TestSuite;
 
 import com.gargoylesoftware.htmlunit.ScriptException;
 import com.gargoylesoftware.htmlunit.WebClient;
@@ -22,7 +21,7 @@ public class TestRunner {
   /**
    * Reporter manager used to write the tests output.
    */
-  private ReporterManager reporterManager;
+  private QUnitReporter reporterManager;
 
   /**
    * Tests handlers containing the results.
@@ -41,7 +40,7 @@ public class TestRunner {
    * @param theReporter The reporter manager to write results. It cannot be
    *    null.
    */
-  public TestRunner(final ReporterManager theReporterManager) {
+  public TestRunner(final QUnitReporter theReporterManager) {
     this(theReporterManager, new WebClient());
   }
 
@@ -53,7 +52,7 @@ public class TestRunner {
    *    null.
    * @param theClient Web client to use. It cannot be null.
    */
-  public TestRunner(final ReporterManager theReporterManager,
+  public TestRunner(final QUnitReporter theReporterManager,
       final WebClient theClient) {
 
     Validate.notNull(theReporterManager, "The reporter manager cannot be"
@@ -72,7 +71,7 @@ public class TestRunner {
       reporterManager.info("Executing " + handler.getTestFile().getName());
       reporterManager.info(StringUtils.leftPad("", 60, "-"));
 
-      for (Module module : handler.getModules()) {
+      for (TestSuite module : handler.getModules()) {
         reporterManager.moduleStart(module);
 
         for (TestCase test : module.getTests()) {
@@ -96,12 +95,12 @@ public class TestRunner {
   }
 
   public void run(final InputStream resource) throws IOException,
-      ScriptException {
+  ScriptException {
     run(resource, null);
   }
 
   public void run(final InputStream resource, final String name)
-      throws IOException, ScriptException {
+  throws IOException, ScriptException {
 
     Validate.notNull(resource, "The resource cannot be null.");
 
@@ -142,7 +141,7 @@ public class TestRunner {
   /**
    * @return Returns the reporter manager configured for this runner.
    */
-  public ReporterManager getReporterManager() {
+  public QUnitReporter getReporterManager() {
     return reporterManager;
   }
 

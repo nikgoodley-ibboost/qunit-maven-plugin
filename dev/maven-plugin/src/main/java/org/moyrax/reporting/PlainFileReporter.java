@@ -47,14 +47,13 @@ public class PlainFileReporter extends AbstractReporter {
   /**
    * {@inheritDoc}
    */
-  @SuppressWarnings("unchecked")
   @Override
-  public <T> void started(final Operation<T> operation,
+  public <T extends ReportEntry> void started(final Operation<T> operation,
       final Status<T> status) {
     Validate.notNull(operation, "The operation cannot be null.");
 
     if (status == ReportStatus.STARTED) {
-      openFile((Operation<ReportInfo>)operation);
+      openFile(operation);
     } else {
       super.started(operation, status);
     }
@@ -63,14 +62,40 @@ public class PlainFileReporter extends AbstractReporter {
   /**
    * {@inheritDoc}
    */
-  @SuppressWarnings("unchecked")
   @Override
-  public <T> void stopped(final Operation<T> operation,
+  public <T extends ReportEntry> void succeed(final Operation<T> operation,
+      final Status<T> status) {
+    stopped(operation, status);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public <T extends ReportEntry> void failed(final Operation<T> operation,
+      final Status<T> status) {
+    stopped(operation, status);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public <T extends ReportEntry> void error(final Operation<T> operation,
+      final Status<T> status) {
+    stopped(operation, status);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public <T extends ReportEntry> void stopped(final Operation<T> operation,
       final Status<T> status) {
     Validate.notNull(operation, "The operation cannot be null.");
 
     if (status == ReportStatus.DONE) {
-      closeFile((Operation<ReportInfo>)operation);
+      closeFile(operation);
     } else {
       super.stopped(operation, status);
     }
@@ -88,7 +113,7 @@ public class PlainFileReporter extends AbstractReporter {
    * {@inheritDoc}
    */
   @Override
-  protected <T> void report(final Operation<T> operation,
+  protected <T extends ReportEntry> void report(final Operation<T> operation,
       final String message) {
 
     OutputStream output = getFileOut();
@@ -109,12 +134,27 @@ public class PlainFileReporter extends AbstractReporter {
    * @return Returns the generated file name. Never returns empty.
    */
   protected String buildFileName(final Operation<?> operation) {
+    return buildFileName(operation, ".txt");
+  }
+
+  /**
+   * Constructs a report's file name for the specified operation.
+   *
+   * @param operation Operation to build the file name. It cannot be null.
+   * @param suffix File name suffix. It cannot be null.
+   *
+   * @return Returns the generated file name. Never returns empty.
+   */
+  protected String buildFileName(final Operation<?> operation,
+      final String suffix) {
     Validate.notNull(operation, "The operation cannot be null.");
+    Validate.notNull(suffix, "The name suffix cannot be null.");
 
     String fileName = operation.getName();
 
-    return "TEST-" + fileName + ".txt";
+    return "TEST-" + fileName + suffix;
   }
+
 
   /**
    * Creates a new report file for the specified operation.

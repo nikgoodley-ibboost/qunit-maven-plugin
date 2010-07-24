@@ -1,11 +1,8 @@
-package org.moyrax.javascript.qunit;
+package org.moyrax.reporting;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-
-import net.sourceforge.htmlunit.corejs.javascript.JavaScriptException;
 
 import org.apache.commons.lang.Validate;
 
@@ -16,37 +13,22 @@ import org.apache.commons.lang.Validate;
  * @author Matias Mirabelli <lumen.night@gmail.com>
  * @since 1.2
  */
-public class Module {
-  /** Timestamp to calculate the total time. */
-  private long startTime = new Date().getTime();
-
-  /**
-   * Name of this module.
-   */
-  private String name;
-
-  /**
-   * Number of milliseconds the test execution took.
-   */
-  private float totalTime;
-
+public class TestSuite extends TestCase {
   /**
    * List of tests that this module contains.
    */
   private HashMap<String, TestCase> tests = new HashMap<String, TestCase>();
 
   /** Default constructor. Required by Rhino. */
-  public Module() {}
+  public TestSuite() {}
 
   /**
    * Creates a new QUnit test module.
    *
    * @param moduleName Name for this module. It cannot be null or empty.
    */
-  public Module(final String moduleName) {
-    Validate.notEmpty(moduleName, "The module name cannot be null or empty.");
-
-    this.name = moduleName;
+  public TestSuite(final String moduleName) {
+    super(moduleName);
   }
 
   /**
@@ -59,11 +41,11 @@ public class Module {
     Validate.notNull(aTest, "The test cannot be null.");
 
     if (tests.containsKey(aTest.getName())) {
-      throw new JavaScriptException(this, "The test '" + aTest.getName() +
-          "' already exists in this module.", 0);
+      throw new IllegalArgumentException("The test '" + aTest.getName() +
+      "' already exists in this module.");
     }
 
-    aTest.setModule(this);
+    aTest.setSuite(this);
 
     tests.put(aTest.getName(), aTest);
   }
@@ -96,20 +78,14 @@ public class Module {
   /**
    * Notifies that this module is done.
    */
-  public void done () {
-    this.totalTime = new Date().getTime() - startTime;
-  }
-
-  /**
-   * Returns the name of this module.
-   */
-  public String getName() {
-    return name;
+  public void done() {
+    super.done(getTotal(), getFailures());
   }
 
   /**
    * Returns the number of tests inside the module which failed.
    */
+  @Override
   public int getFailures() {
     return getFailed().size();
   }
@@ -117,18 +93,8 @@ public class Module {
   /**
    * Returns the number of tests assertions inside the module.
    */
+  @Override
   public int getTotal() {
     return tests.size();
-  }
-
-  /**
-   * Returns the number of milliseconds the test execution took.
-   */
-  public float getTotalTime() {
-    return totalTime;
-  }
-
-  public String getClassName() {
-    return "QUnitModule";
   }
 }

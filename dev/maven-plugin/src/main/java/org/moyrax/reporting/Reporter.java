@@ -21,7 +21,8 @@ public interface Reporter {
    * @param operation Operation which made the action.
    * @param status Operation status at this instance.
    */
-  <T> void started(final Operation<T> operation, final Status<T> status);
+  <T extends ReportEntry> void started(final Operation<T> operation,
+      final Status<T> status);
 
   /**
    * Reports that an operation has been stopped.
@@ -31,7 +32,8 @@ public interface Reporter {
    * @param operation Operation which made the action.
    * @param status Operation status at this instance.
    */
-  <T> void stopped(final Operation<T> operation, final Status<T> status);
+  <T extends ReportEntry> void stopped(final Operation<T> operation,
+      final Status<T> status);
 
   /**
    * Reports that an operation has been suspended.
@@ -41,7 +43,8 @@ public interface Reporter {
    * @param operation Operation which made the action.
    * @param status Operation status at this instance.
    */
-  <T> void suspended(final Operation<T> operation, final Status<T> status);
+  <T extends ReportEntry> void suspended(final Operation<T> operation,
+      final Status<T> status);
 
   /**
    * Reports that an operation has been skipped.
@@ -51,7 +54,8 @@ public interface Reporter {
    * @param operation Operation which made the action.
    * @param status Operation status at this instance.
    */
-  <T> void skipped(final Operation<T> operation, final Status<T> status);
+  <T extends ReportEntry> void skipped(final Operation<T> operation,
+      final Status<T> status);
 
   /**
    * Reports that an operation has finished successfully.
@@ -61,7 +65,8 @@ public interface Reporter {
    * @param operation Operation which made the action.
    * @param status Operation status at this instance.
    */
-  <T> void succeed(final Operation<T> operation, final Status<T> status);
+  <T extends ReportEntry> void succeed(final Operation<T> operation,
+      final Status<T> status);
 
   /**
    * Reports that an operation has finished with an expected error.
@@ -71,7 +76,8 @@ public interface Reporter {
    * @param operation Operation which made the action.
    * @param status Operation status at this instance.
    */
-  <T> void failed(final Operation<T> operation, final Status<T> status);
+  <T extends ReportEntry> void failed(final Operation<T> operation,
+      final Status<T> status);
 
   /**
    * Reports that an operation has finished by an unexpected exception.
@@ -81,7 +87,8 @@ public interface Reporter {
    * @param operation Operation which made the action.
    * @param status Operation status at this instance.
    */
-  <T> void error(final Operation<T> operation, final Status<T> status);
+  <T extends ReportEntry> void error(final Operation<T> operation,
+      final Status<T> status);
 
   /**
    * Writes a warning message to the output device. By default uses the class

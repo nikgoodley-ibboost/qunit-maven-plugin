@@ -1,21 +1,19 @@
 package org.moyrax.reporting;
 
 import org.apache.commons.lang.Validate;
-import org.moyrax.reporting.Operation;
-import org.moyrax.reporting.Status;
 
 /**
- * Represents a possible status of a {@link ReportInfo}.
+ * Represents a possible status of a {@link ReportEntry}.
  *
  * @author Matias Mirabelli &lt;matias.mirabelli@globant.com&gt;
  * @since 0.2.2
  */
-public enum ReportStatus implements Status<ReportInfo> {
+public enum ReportStatus implements Status<ReportEntry> {
   STARTED() {
     /**
      * {@inheritDoc}
      */
-    public String getMessage(final Operation<ReportInfo> operation) {
+    public String getMessage(final Operation<ReportEntry> operation) {
       Validate.notNull(operation, "The operation cannot be null.");
 
       return operation.getRelatedObject().getName() + " is started.";
@@ -26,7 +24,7 @@ public enum ReportStatus implements Status<ReportInfo> {
     /**
      * {@inheritDoc}
      */
-    public String getMessage(final Operation<ReportInfo> operation) {
+    public String getMessage(final Operation<ReportEntry> operation) {
       Validate.notNull(operation, "The operation cannot be null.");
 
       return operation.getRelatedObject().getName() + " is done.";

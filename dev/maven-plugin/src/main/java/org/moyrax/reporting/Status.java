@@ -8,7 +8,7 @@ package org.moyrax.reporting;
  * @author Matias Mirabelli &lt;matias.mirabelli@globant.com&gt;
  * @since 0.2.0
  */
-public interface Status<T> {
+public interface Status<T extends ReportEntry> {
   /* Constant containing the known status names. */
   public final String STARTED = "started";
   public final String STOPPED = "stopped";

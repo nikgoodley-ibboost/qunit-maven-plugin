@@ -3,9 +3,11 @@ package org.moyrax.javascript.qunit;
 import org.apache.commons.lang.Validate;
 import org.moyrax.reporting.Operation;
 import org.moyrax.reporting.Status;
+import org.moyrax.reporting.TestCase;
+import org.moyrax.reporting.TestSuite;
 
 /**
- * Represents a possible status of a {@link Module}.
+ * Represents a possible status of a {@link TestSuite}.
  *
  * @author Matias Mirabelli &lt;matias.mirabelli@globant.com&gt;
  * @since 0.2.0
@@ -26,7 +28,7 @@ public enum TestStatus implements Status<TestCase> {
 
       String message = "";
 
-      if (test.getModule() != null) {
+      if (test.getSuite() != null) {
         message += "\t";
       }
 
@@ -47,13 +49,13 @@ public enum TestStatus implements Status<TestCase> {
 
       String message = "";
 
-      if (test.getModule() != null) {
+      if (test.getSuite() != null) {
         message += "\t";
       }
 
       message += "Test completed: " + test.getName() + "(" + test.getTotal()
-          + " asserts, " + test.getFailures() + " failed, "
-          + (test.getTotal() - test.getFailures()) + " passed)";
+      + " asserts, " + test.getFailures() + " failed, "
+      + (test.getTotal() - test.getFailures()) + " passed)";
 
       return message;
     }

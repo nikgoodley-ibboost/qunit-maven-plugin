@@ -1,8 +1,6 @@
 package org.moyrax.maven;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -11,10 +9,8 @@ import org.apache.maven.shared.model.fileset.util.FileSetManager;
 import org.junit.Before;
 import org.junit.Test;
 import org.moyrax.javascript.Shell;
-import org.moyrax.javascript.qunit.ReporterManager;
+import org.moyrax.javascript.qunit.QUnitReporter;
 import org.moyrax.javascript.qunit.TestRunner;
-import org.moyrax.reporting.LogReporter;
-import org.moyrax.reporting.Reporter;
 import org.moyrax.resolver.ClassPathResolver;
 import org.moyrax.resolver.LibraryResolver;
 
@@ -34,9 +30,8 @@ public class TestingClientTest {
   /**
    * Reporting results to the console.
    */
-  private ReporterManager reporter = new ReporterManager(
-      new ArrayList<Reporter>(Arrays.asList(new Reporter[] {
-          new LogReporter() })), log);
+  private QUnitReporter reporter = new QUnitReporter(
+      System.getProperty("java.io.tmpdir"), log);
 
   /**
    * Container for running tests.
@@ -91,8 +86,8 @@ public class TestingClientTest {
    */
   private void loadContextResources(final TestingClient client) {
     final String[] dependencies = new String[] {
-      /* QUnit testing framework. */
-      "org/moyrax/javascript/lib/qunit.js"
+        /* QUnit testing framework. */
+        "org/moyrax/javascript/lib/qunit.js"
     };
 
     for (int i = 0; i < dependencies.length; i++) {

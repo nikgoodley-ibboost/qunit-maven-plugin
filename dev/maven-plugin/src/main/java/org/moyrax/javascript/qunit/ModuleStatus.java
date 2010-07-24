@@ -3,22 +3,23 @@ package org.moyrax.javascript.qunit;
 import org.apache.commons.lang.Validate;
 import org.moyrax.reporting.Operation;
 import org.moyrax.reporting.Status;
+import org.moyrax.reporting.TestSuite;
 
 /**
- * Represents a possible status of a {@link Module}.
+ * Represents a possible status of a {@link TestSuite}.
  *
  * @author Matias Mirabelli &lt;matias.mirabelli@globant.com&gt;
  * @since 0.2.0
  */
-public enum ModuleStatus implements Status<Module> {
+public enum ModuleStatus implements Status<TestSuite> {
   STARTED() {
     /**
      * {@inheritDoc}
      */
-    public String getMessage(final Operation<Module> operation) {
+    public String getMessage(final Operation<TestSuite> operation) {
       Validate.notNull(operation, "The operation cannot be null.");
 
-      Module module = operation.getRelatedObject();
+      TestSuite module = operation.getRelatedObject();
 
       String message = "Module started: " + module.getName();
 
@@ -30,10 +31,10 @@ public enum ModuleStatus implements Status<Module> {
     /**
      * {@inheritDoc}
      */
-    public String getMessage(final Operation<Module> operation) {
+    public String getMessage(final Operation<TestSuite> operation) {
       Validate.notNull(operation, "The operation cannot be null.");
 
-      Module module = operation.getRelatedObject();
+      TestSuite module = operation.getRelatedObject();
       String timestamp = String.valueOf(module.getTotalTime() / 1000) + " secs.";
 
       String message = "";
@@ -52,7 +53,7 @@ public enum ModuleStatus implements Status<Module> {
     /**
      * {@inheritDoc}
      */
-    public String getMessage(final Operation<Module> operation) {
+    public String getMessage(final Operation<TestSuite> operation) {
       String message = ModuleStatus.SUCCEED.getMessage(operation);
 
       return message + " <<<<<<<<<< FAILED!";
@@ -63,7 +64,7 @@ public enum ModuleStatus implements Status<Module> {
     /**
      * {@inheritDoc}
      */
-    public String getMessage(final Operation<Module> operation) {
+    public String getMessage(final Operation<TestSuite> operation) {
       String message = ModuleStatus.SUCCEED.getMessage(operation);
 
       return message + " <<<<<<<<<< THERE'RE TESTS IN ERROR!";
