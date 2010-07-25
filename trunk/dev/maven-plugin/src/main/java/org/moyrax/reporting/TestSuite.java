@@ -83,7 +83,7 @@ public class TestSuite extends TestCase {
   }
 
   /**
-   * Returns the number of tests inside the module which failed.
+   * {@inheritDoc}
    */
   @Override
   public int getFailures() {
@@ -91,10 +91,24 @@ public class TestSuite extends TestCase {
   }
 
   /**
-   * Returns the number of tests assertions inside the module.
+   * {@inheritDoc}
    */
   @Override
   public int getTotal() {
     return tests.size();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public long getTotalTime() {
+    long totalTime = 0;
+
+    for (TestCase test : getTests()) {
+      totalTime += test.getTotalTime();
+    }
+
+    return totalTime;
   }
 }
