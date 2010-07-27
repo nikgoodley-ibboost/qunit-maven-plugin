@@ -1,3 +1,5 @@
+/* vim: set ts=2 et sw=2 cindent fo=qroca: */
+
 package org.moyrax.resolver;
 
 import java.io.InputStream;
@@ -5,13 +7,29 @@ import java.io.InputStream;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
-/**
- * This class loads JavaScript files from the application classpath.
+/** This class loads JavaScript files from the provided classpath.
  *
  * @author Matias Mirabelli <lumen.night@gmail.com>
  * @since 1.1
  */
 public class ClassPathResolver implements ResourceResolver {
+
+  /** The class loader to use to look for javascript files.
+   *
+   * This is never null.
+   */
+  private ClassLoader classLoader;
+  
+  /** Creates a new ClassPathResolver.
+   *
+   * @param theClassLoader the class loader to load the javascript files from.
+   * It cannot be null.
+   */
+  public ClassPathResolver(final ClassLoader theClassLoader) {
+    Validate.notNull(theClassLoader, "The class loader cannot be null");
+    classLoader = theClassLoader;
+  }
+
   /**
    * {@inheritDoc ResourceResolver#canHandle(String)}
    */
@@ -48,10 +66,9 @@ public class ClassPathResolver implements ResourceResolver {
       classPath = StringUtils.substringAfter(classPath, "/");
     }
 
-    final InputStream input = Thread.currentThread().getContextClassLoader()
-         .getResourceAsStream(classPath);
+    final InputStream input = classLoader.getResourceAsStream(classPath);
 
     return input;
   }
-
 }
+

@@ -17,8 +17,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.moyrax.javascript.annotation.Script;
 
-/**
- * This class holds all purpose methods to handle and to proccess javascript
+/** This class holds all purpose methods to handle and to process javascript
  * resources.
  *
  * @author Matias Mirabelli <lumen.night@gmail.com>

@@ -5,8 +5,10 @@ import java.io.InputStream;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
-/**
- * This class loads JavaScript libraries included in the plugin distribution.
+/** This class loads JavaScript libraries included in the plugin distribution.
+ *
+ * It loads all the lib: prefixed resources from the classloader associated to
+ * this class. This classloader should have access to the plugin resources.
  *
  * @author Matias Mirabelli <lumen.night@gmail.com>
  * @since 1.1
@@ -18,14 +20,14 @@ public class LibraryResolver extends ClassPathResolver {
    */
   private String baseClassPath;
 
-  /**
-   * Constructs a new {@link LibraryResolver} and sets the classpath which the
+  /** Constructs a new {@link LibraryResolver} and sets the classpath which the
    * resolver will use to search for locate library resources.
    *
    * @param baseClassPath Classpath from the resources should be loaded. It
    *    cannot be null.
    */
   public LibraryResolver(final String baseClassPath) {
+    super(LibraryResolver.class.getClassLoader());
     Validate.notNull(baseClassPath, "The baseClassPath parameter cannot be " +
         "null.");
 

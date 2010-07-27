@@ -1,22 +1,30 @@
+/* vim: set ts=2 et sw=2 cindent fo=qroca: */
+
 package org.moyrax.maven;
 
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.Validate;
+import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.project.MavenProject;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
 import org.moyrax.javascript.qunit.QUnitReporter;
 import org.moyrax.javascript.qunit.TestRunner;
+import org.moyrax.resolver.ClassPathResolver;
 
+import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.WebClient;
 
-/**
- * Goal which touches a timestamp file.
+/** Runs a qunit based test.
  *
  * @goal test
  * @phase test
@@ -69,30 +77,45 @@ public class QUnitPlugin extends AbstractMojo {
 
   /**
    * Container for running tests.
+   *
+   * TODO Make the browser type configurable.
    */
-  private WebClient browser = new WebClient();
+  private WebClient browser = new WebClient(BrowserVersion.FIREFOX_3);
 
   /**
    * Testing runner.
    */
   private TestRunner runner;
-
+  
+  /** The Maven project object, used to generate a classloader to access the
+   * classpath resources from the project.
+   *
+   * Injected by maven. This is never null.
+   *
+   * @parameter expression="${project}" @readonly
+   */
+  private MavenProject project;
+  
   /**
    * Executes this plugin when the build reached the defined phase and goal.
    */
   public void execute() throws MojoExecutionException, MojoFailureException {
+
+    // Should have been injected by maven. Checked here as this is the entry
+    // point of the module.
+    Validate.notNull(project, "The project cannot be null.");
+
     reporter = new QUnitReporter(getReportsDirectory(),
         new MojoLogAdapter(getLog()));
-    runner = new TestRunner(reporter, browser);
 
+    runner = new TestRunner(reporter, browser);
     initEnvironment();
     loadContextResources();
 
     try {
       client.runTests();
     } catch (Exception ex) {
-      throw new MojoFailureException(getClass().getSimpleName(), "",
-          ex.getMessage());
+      throw new MojoFailureException(ex.getMessage(), ex);
     }
   }
 
@@ -169,7 +192,9 @@ public class QUnitPlugin extends AbstractMojo {
 
     ContextPathBuilder.build();
 
-    client = new TestingClient(runner, env);
+    URLClassLoader projectClassLoader = createProjectClassloader(project);
+    ClassPathResolver resolver = new ClassPathResolver(projectClassLoader);
+    client = new TestingClient(runner, env, resolver);
   }
 
   /**
@@ -185,4 +210,35 @@ public class QUnitPlugin extends AbstractMojo {
 
     return directory.getAbsolutePath();
   }
+  
+  /** Creates the classloader to load resources from the project under test.
+   *
+   * @param theProject The maven project under test.
+   *
+   * @return a classloader initialized from the provided maven project, never
+   * null
+   */
+  @SuppressWarnings("unchecked")
+  private URLClassLoader createProjectClassloader(
+      final MavenProject theProject) {
+    List runtimeClasspathElements;
+    try {
+      runtimeClasspathElements = theProject.getRuntimeClasspathElements();
+    } catch (DependencyResolutionRequiredException e) {
+      throw new RuntimeException(e);
+    }
+    URL[] runtimeUrls = new URL[runtimeClasspathElements.size()];
+    for (int i = 0; i < runtimeClasspathElements.size(); i++) {
+      String element = (String) runtimeClasspathElements.get(i);
+      try {
+        runtimeUrls[i] = new File(element).toURI().toURL();
+      } catch (MalformedURLException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    URLClassLoader newLoader = new URLClassLoader(runtimeUrls,
+        Thread.currentThread().getContextClassLoader());
+    return newLoader;
+  }
 }
+

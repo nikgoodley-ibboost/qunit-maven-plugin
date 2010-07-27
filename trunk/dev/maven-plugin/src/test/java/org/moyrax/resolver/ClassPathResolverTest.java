@@ -15,7 +15,11 @@ import org.moyrax.resolver.ResourceResolver;
  * @since 1.1
  */
 public class ClassPathResolverTest {
-  private ClassPathResolver resolver = new ClassPathResolver();
+  
+  // We only have the current project, so we initialize the ClassPathResolver
+  // with the contex class loader.
+  private ClassPathResolver resolver = new ClassPathResolver(
+      Thread.currentThread().getContextClassLoader());
 
   @Test
   public void testResolveScript() throws Exception {

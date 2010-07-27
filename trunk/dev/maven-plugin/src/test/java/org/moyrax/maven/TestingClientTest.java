@@ -55,7 +55,9 @@ public class TestingClientTest {
 
   @Test
   public void testApplication() throws Exception {
-    final TestingClient testDriverClient = new TestingClient(runner,context);
+    final TestingClient testDriverClient;
+    testDriverClient = new TestingClient(runner,context, new ClassPathResolver(
+        Thread.currentThread().getContextClassLoader()));
 
     context.setTargetPath(new File("."));
 
@@ -74,7 +76,8 @@ public class TestingClientTest {
     });
 
     Shell.setResolver("lib", new LibraryResolver("/org/moyrax/javascript/lib"));
-    Shell.setResolver("classpath", new ClassPathResolver());
+    Shell.setResolver("classpath", new ClassPathResolver(
+        Thread.currentThread().getContextClassLoader()));
 
     loadContextResources(testDriverClient);
 
