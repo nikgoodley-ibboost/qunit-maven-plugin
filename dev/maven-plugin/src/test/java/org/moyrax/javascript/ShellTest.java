@@ -37,7 +37,10 @@ public class ShellTest {
     scope = (ScriptableObject)context.initStandardObjects(shell);
 
     Shell.setResolver("lib", new LibraryResolver("/org/moyrax/javascript/lib"));
-    Shell.setResolver("classpath", new ClassPathResolver());
+    // We only have the current project, so we initialize the ClassPathResolver
+    // with the context class loader.
+    Shell.setResolver("classpath", new ClassPathResolver(
+        Thread.currentThread().getContextClassLoader()));
 
     /* Adds the global functions to the scope. */
     scope.defineFunctionProperties(

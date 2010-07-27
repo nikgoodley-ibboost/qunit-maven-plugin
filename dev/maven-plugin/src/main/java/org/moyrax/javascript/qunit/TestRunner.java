@@ -33,23 +33,11 @@ public class TestRunner {
    */
   private WebClient client;
 
-  /**
-   * Constructs a new {@link TestRunner} and sets the reporter manager for
-   * writing the result output.
-   *
-   * @param theReporter The reporter manager to write results. It cannot be
-   *    null.
-   */
-  public TestRunner(final QUnitReporter theReporterManager) {
-    this(theReporterManager, new WebClient());
-  }
-
-  /**
-   * Creates a new {@link TestRunner} and uses the given client as the
+  /** Creates a new {@link TestRunner} and uses the given client as the
    * container for running tests.
    *
    * @param theReporter The reporter manager to write results. It cannot be
-   *    null.
+   * null.
    * @param theClient Web client to use. It cannot be null.
    */
   public TestRunner(final QUnitReporter theReporterManager,

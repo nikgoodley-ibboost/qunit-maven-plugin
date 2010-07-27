@@ -8,8 +8,7 @@ import java.util.HashMap;
 import org.moyrax.javascript.instrument.ComponentClassAdapter;
 import org.moyrax.util.ScriptUtils;
 
-/**
- * This {@link ClassLoader} procceses all classes designed to be exported as
+/** This {@link ClassLoader} processes all classes designed to be exported as
  * JavaScript components. It must be used by the engine in order to identify
  * the exportable classes to register in the global context.
  *
