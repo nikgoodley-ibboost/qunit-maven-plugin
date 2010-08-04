@@ -7,13 +7,8 @@ import org.moyrax.javascript.annotation.Script;
 @Ignore
 @Script
 public class TestScriptClass {
-
   @Function
-  public String ping(final String msg, int any) {
+  public String ping(final String msg, final int any) {
     return "PONG[" + any + "]: " + msg;
-  }
-
-  public String getClassName() {
-    return "SomeScriptable";
   }
 }

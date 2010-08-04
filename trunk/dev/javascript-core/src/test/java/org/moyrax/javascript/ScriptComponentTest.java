@@ -1,12 +1,10 @@
 package org.moyrax.javascript;
 
-import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.assertNotNull;
-
+import static junit.framework.Assert.assertTrue;
 import net.sourceforge.htmlunit.corejs.javascript.Context;
 import net.sourceforge.htmlunit.corejs.javascript.Function;
 import net.sourceforge.htmlunit.corejs.javascript.Scriptable;
-import net.sourceforge.htmlunit.corejs.javascript.ScriptableObject;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.junit.Before;
@@ -20,9 +18,8 @@ import org.moyrax.javascript.annotation.Script;
  * @author Matias Mirabelli <lumen.night@gmail.com>
  */
 public class ScriptComponentTest {
-  @SuppressWarnings("serial")
   @Script
-  private static class TestScriptableObject extends ScriptableObject {
+  private static class TestScriptableObject {
     /**
      * This method will be registered in the global scope.
      *
@@ -52,14 +49,6 @@ public class ScriptComponentTest {
         final Function thisObj) {
       assertInternal("testProc is visible!");
     }
-
-    /**
-     * Retrieves the name of the object as will be known in the JavaScript code.
-     */
-    @Override
-    public String getClassName() {
-      return "TestClass";
-    }
   };
 
   /**
@@ -78,7 +67,7 @@ public class ScriptComponentTest {
   @Test
   public void testGetGlobalFunctionNames() {
     String[] functionNames = bean.getGlobalFunctionNames()
-        .toArray(new String[] {});
+    .toArray(new String[] {});
 
     assertTrue(ArrayUtils.contains(functionNames, "testProc"));
     assertTrue(!ArrayUtils.contains(functionNames, "testHiddenProc"));

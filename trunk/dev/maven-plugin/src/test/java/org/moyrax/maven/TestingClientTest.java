@@ -1,13 +1,12 @@
 package org.moyrax.maven;
 
-import java.io.File;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
 import org.junit.Before;
 import org.junit.Test;
+import org.moyrax.javascript.ContextClassLoader;
 import org.moyrax.javascript.Shell;
 import org.moyrax.javascript.qunit.QUnitReporter;
 import org.moyrax.javascript.qunit.TestRunner;
@@ -54,12 +53,10 @@ public class TestingClientTest {
   }
 
   @Test
-  public void testApplication() throws Exception {
-    final TestingClient testDriverClient;
-    testDriverClient = new TestingClient(runner,context, new ClassPathResolver(
+  public void testTestingClient() throws Exception {
+    final TestingClient testingClient;
+    testingClient = new TestingClient(runner,context, new ClassPathResolver(
         Thread.currentThread().getContextClassLoader()));
-
-    context.setTargetPath(new File("."));
 
     final String baseDirectory = System.getProperty("user.dir");
     final FileSet tests = new FileSet();
@@ -75,13 +72,16 @@ public class TestingClientTest {
         "classpath:/org/moyrax/javascript/common/**"
     });
 
+    context.setClassLoader(new ContextClassLoader(
+        Thread.currentThread().getContextClassLoader()));
+
     Shell.setResolver("lib", new LibraryResolver("/org/moyrax/javascript/lib"));
     Shell.setResolver("classpath", new ClassPathResolver(
         Thread.currentThread().getContextClassLoader()));
 
-    loadContextResources(testDriverClient);
+    loadContextResources(testingClient);
 
-    testDriverClient.runTests();
+    testingClient.runTests();
   }
 
   /**

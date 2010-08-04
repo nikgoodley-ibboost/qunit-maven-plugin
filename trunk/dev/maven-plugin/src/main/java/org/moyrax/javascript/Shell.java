@@ -27,7 +27,7 @@ import org.moyrax.util.ScriptUtils;
  * @author Matias Mirabelli <lumen.night@gmail.com>
  * @since 0.50
  */
-@Script
+@Script(name = "Shell")
 public class Shell extends Global {
   /** Default id for serialization. */
   private static final long serialVersionUID = 1L;
@@ -42,7 +42,7 @@ public class Shell extends Global {
    * List of resolvers used to load resources on runtime.
    */
   private static Map<String, ResourceResolver> resolvers =
-      new HashMap<String, ResourceResolver>();
+    new HashMap<String, ResourceResolver>();
 
   /**
    * Locates and retrieves resources from the context path..
@@ -71,7 +71,7 @@ public class Shell extends Global {
       final String resourceUri = (String)arguments[i];
 
       final Object result = findResolver(resourceUri)
-          .resolve(resourceUri);
+      .resolve(resourceUri);
 
       if (result != null) {
         if (result.getClass().equals(File.class)) {
@@ -116,7 +116,7 @@ public class Shell extends Global {
         final NativeObject nativeObject = (NativeObject)arguments[i];
 
         Validate.isTrue(nativeObject.has("url", scope), "The url parameter " +
-            "doesn't exists.");
+        "doesn't exists.");
 
         resourceUri = (String)nativeObject.get("url", scope);
 
@@ -131,14 +131,6 @@ public class Shell extends Global {
       pageContext.setLogLevel(logLevel);
       pageContext.open();
     }
-  }
-
-  /**
-   * Returns the class name used in the hosts scripts.
-   */
-  @Override
-  public String getClassName() {
-    return "Shell";
   }
 
   /**

@@ -34,7 +34,7 @@ import sun.reflect.annotation.AnnotationType;
  * @since 1.2
  */
 public class ClassResource extends ClassAdapter implements Serializable,
-  GenericDeclaration, java.lang.reflect.Type, AnnotatedElement {
+GenericDeclaration, java.lang.reflect.Type, AnnotatedElement {
 
   /** Default id for serialization. */
   private static final long serialVersionUID = -8120951650118655721L;
@@ -62,7 +62,7 @@ public class ClassResource extends ClassAdapter implements Serializable,
   /** This cache contains the loaded fields and methods in order to keep a
      unique instance of each object in the class. */
   private HashMap<CacheType, HashMap<String, Object>> cache = new
-    HashMap<CacheType, HashMap<String, Object>>();
+  HashMap<CacheType, HashMap<String, Object>>();
 
   /**
    * Creates a new {@link ClassResource} to read the specified class.
@@ -82,8 +82,8 @@ public class ClassResource extends ClassAdapter implements Serializable,
    *
    * @throws IOException If the class is not found or it cannot be readed.
    */
-  public ClassResource (final Class<?> klass, ClassLoader classLoader)
-    throws IOException {
+  public ClassResource (final Class<?> klass, final ClassLoader classLoader)
+  throws IOException {
 
     this(klass.getName(), classLoader);
   }
@@ -194,7 +194,7 @@ public class ClassResource extends ClassAdapter implements Serializable,
   /**
    * {@inheritDoc}
    */
-  public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
+  public boolean isAnnotationPresent(final Class<? extends Annotation> annotationClass) {
     return isAnnotationPresent(annotationClass.getName());
   }
 
@@ -304,7 +304,7 @@ public class ClassResource extends ClassAdapter implements Serializable,
       for (int i = 0, j = node.visibleAnnotations.size(); i < j; i++) {
         AnnotationNode ann = (AnnotationNode)node.visibleAnnotations.get(i);
         String descriptor = "L" + name.replace(".", "/") + ";";
-  
+
         if (ann.desc.equals(descriptor)) {
           return ann;
         }
@@ -327,7 +327,18 @@ public class ClassResource extends ClassAdapter implements Serializable,
 
     if (!cache.get(CacheType.ANNOTATIONS).containsKey(node.desc)) {
       try {
+        /* Extracts the annotation's class. */
+        String className = Type.getType(node.desc).getClassName();
+
+        /* Tries to get the annotation class using the current class loader. */
+        Class<? extends Annotation> klass =
+          (Class<? extends Annotation>)this.getClass()
+          .getClassLoader().loadClass(className);
+
         HashMap<String, Object> values = new HashMap<String, Object>();
+
+        values = (HashMap<String, Object>)AnnotationType
+            .getInstance(klass).memberDefaults();
 
         /* Retrieves all values for this annotation. */
         if (node.values != null) {
@@ -341,20 +352,6 @@ public class ClassResource extends ClassAdapter implements Serializable,
 
             values.put(name, value);
           }
-        }
-
-        /* Extracts the annotation's class. */
-        String className = Type.getType(node.desc).getClassName();
-
-        /* Tries to get the annotation class using the current class loader. */
-        Class<? extends Annotation> klass =
-          (Class<? extends Annotation>)this.getClass()
-          .getClassLoader().loadClass(className);
-
-        if (values.isEmpty()) {
-          /* No values specified for the annotation, use the default values. */
-          values = (HashMap<String, Object>)AnnotationType.getInstance(klass)
-              .memberDefaults();
         }
 
         /* Creates a proxy for the annotation. */
