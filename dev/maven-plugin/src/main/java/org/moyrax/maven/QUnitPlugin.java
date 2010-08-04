@@ -7,16 +7,29 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang.Validate;
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
+import org.apache.maven.artifact.factory.ArtifactFactory;
+import org.apache.maven.artifact.metadata.ArtifactMetadataSource;
+import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
+import org.apache.maven.artifact.resolver.ArtifactResolutionException;
+import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
+import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.project.MavenProject;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.project.MavenProject;
+import org.apache.maven.project.artifact.InvalidDependencyVersionException;
+import org.apache.maven.project.artifact.MavenMetadataSource;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
+import org.moyrax.javascript.ContextClassLoader;
 import org.moyrax.javascript.qunit.QUnitReporter;
 import org.moyrax.javascript.qunit.TestRunner;
 import org.moyrax.resolver.ClassPathResolver;
@@ -54,13 +67,6 @@ public class QUnitPlugin extends AbstractMojo {
   private List<String> components = new ArrayList<String>();
 
   /**
-   * The greeting to display.
-   *
-   * @parameter expression="${project.build.directory}" default-value="${project.build.directory}"
-   */
-  private File targetPath;
-
-  /**
    * Object to ask the files specified in the plugin configuration.
    */
   private final FileSetManager fileSetManager = new FileSetManager();
@@ -86,7 +92,7 @@ public class QUnitPlugin extends AbstractMojo {
    * Testing runner.
    */
   private TestRunner runner;
-  
+
   /** The Maven project object, used to generate a classloader to access the
    * classpath resources from the project.
    *
@@ -95,7 +101,34 @@ public class QUnitPlugin extends AbstractMojo {
    * @parameter expression="${project}" @readonly
    */
   private MavenProject project;
-  
+
+  /**
+   * @component
+   */
+  private ArtifactResolver artifactResolver;
+
+  /**
+   * Used to build the list of artifacts from the project's dependencies.
+   *
+   * @component
+   */
+  private ArtifactFactory artifactFactory;
+
+  /**
+   * Provides some metadata operations, like querying the remote repository for
+   * a list of versions available for an artifact.
+   *
+   * @component
+   */
+  private ArtifactMetadataSource metadataSource;
+
+  /**
+   * Specifies the repository used for artifact handling.
+   *
+   * @parameter expression="${localRepository}"
+   */
+  private ArtifactRepository localRepository;
+
   /**
    * Executes this plugin when the build reached the defined phase and goal.
    */
@@ -117,21 +150,6 @@ public class QUnitPlugin extends AbstractMojo {
     } catch (Exception ex) {
       throw new MojoFailureException(ex.getMessage(), ex);
     }
-  }
-
-  /**
-   * Sets the build target path.
-   *
-   * @param theTargetPath Base path. It cannot be null or empty.
-   */
-  public void setTargetPath(final String theTargetPath) {
-    Validate.notEmpty(theTargetPath, "The base path cannot be null or empty.");
-
-    targetPath = new File(theTargetPath);
-
-    Validate.isTrue(targetPath.exists() &&
-        targetPath.isDirectory(), "The base path is not a valid "
-        + "directory.");
   }
 
   /**
@@ -183,7 +201,6 @@ public class QUnitPlugin extends AbstractMojo {
         fileSetManager.getExcludedFiles(testResources));
 
     env.setLookupPackages(components.toArray(new String[] {}));
-    env.setTargetPath(targetPath);
 
     for (Entry entry : contextPath) {
       ContextPathBuilder.addDefinition(entry.files.getDirectory(),
@@ -192,8 +209,11 @@ public class QUnitPlugin extends AbstractMojo {
 
     ContextPathBuilder.build();
 
-    URLClassLoader projectClassLoader = createProjectClassloader(project);
+    ClassLoader projectClassLoader = createProjectClassloader(project);
     ClassPathResolver resolver = new ClassPathResolver(projectClassLoader);
+
+    env.setClassLoader(projectClassLoader);
+
     client = new TestingClient(runner, env, resolver);
   }
 
@@ -201,8 +221,8 @@ public class QUnitPlugin extends AbstractMojo {
    * Returns the directory where the reports will be written.
    */
   private String getReportsDirectory() {
-    File directory = new File(targetPath.getAbsolutePath(),
-    "target/qunit-reports");
+    File directory = new File(project.getBuild().getOutputDirectory(),
+      "qunit-reports");
 
     if (!directory.exists()) {
       directory.mkdirs();
@@ -210,7 +230,7 @@ public class QUnitPlugin extends AbstractMojo {
 
     return directory.getAbsolutePath();
   }
-  
+
   /** Creates the classloader to load resources from the project under test.
    *
    * @param theProject The maven project under test.
@@ -219,25 +239,96 @@ public class QUnitPlugin extends AbstractMojo {
    * null
    */
   @SuppressWarnings("unchecked")
-  private URLClassLoader createProjectClassloader(
+  private ClassLoader createProjectClassloader(
       final MavenProject theProject) {
-    List runtimeClasspathElements;
+
+    List testClasspathElements;
+
     try {
-      runtimeClasspathElements = theProject.getRuntimeClasspathElements();
+      testClasspathElements = theProject.getTestClasspathElements();
     } catch (DependencyResolutionRequiredException e) {
       throw new RuntimeException(e);
     }
-    URL[] runtimeUrls = new URL[runtimeClasspathElements.size()];
-    for (int i = 0; i < runtimeClasspathElements.size(); i++) {
-      String element = (String) runtimeClasspathElements.get(i);
+
+    URL[] testUrls = new URL[testClasspathElements.size()];
+
+    for (int i = 0; i < testClasspathElements.size(); i++) {
+      String element = (String) testClasspathElements.get(i);
       try {
-        runtimeUrls[i] = new File(element).toURI().toURL();
+        testUrls[i] = new File(element).toURI().toURL();
       } catch (MalformedURLException e) {
         throw new RuntimeException(e);
       }
     }
-    URLClassLoader newLoader = new URLClassLoader(runtimeUrls,
+
+    ClassLoader depsClassLoader = createDependenciesClassLoader(theProject);
+
+    URLClassLoader newLoader = new URLClassLoader(testUrls, depsClassLoader);
+
+    return new ContextClassLoader(newLoader);
+  }
+
+  /**
+   * Creates a {@link ClassLoader} which contains all the project's
+   * dependencies.
+   *
+   * @param theProject The maven project under test. It cannot be null.
+   *
+   * @return Returns the created {@link ClassLoader} containing all the
+   *    project's dependencies.
+   */
+  @SuppressWarnings("unchecked")
+  private ClassLoader createDependenciesClassLoader(
+      final MavenProject theProject) {
+
+    Validate.notNull(theProject, "The project cannot be null.");
+
+    // Make Artifacts of all the dependencies.
+    Set<Artifact> dependencyArtifacts;
+
+    try {
+      dependencyArtifacts = MavenMetadataSource.createArtifacts(
+          artifactFactory, theProject.getDependencies(), null, null, null );
+    } catch (InvalidDependencyVersionException ex) {
+      throw new RuntimeException("Cannot resolve dependencies version.", ex);
+    }
+
+    // Resolves all dependencies transitively to obtain a comprehensive list
+    // of jars.
+    ArtifactResolutionResult result;
+
+    try {
+      result = artifactResolver.resolveTransitively(
+          dependencyArtifacts,
+          theProject.getArtifact(),
+          Collections.EMPTY_LIST,
+          localRepository,
+          metadataSource);
+    } catch (ArtifactResolutionException ex) {
+      throw new RuntimeException("Cannot resolve the artifact.", ex);
+    } catch (ArtifactNotFoundException ex) {
+      throw new RuntimeException("Artifact not found in the local"
+          + " repository.", ex);
+    }
+
+    // Retrieves the filesystem path of each dependency jar.
+    Set<Artifact> artifacts = result.getArtifacts();
+
+    URL[] urls = new URL[artifacts.size()];
+
+    int i = 0;
+
+    for (Artifact artifact : artifacts) {
+      try {
+        urls[i++] = artifact.getFile().toURI().toURL();
+      } catch (MalformedURLException ex) {
+        throw new RuntimeException("Cannot resolve the artifact path.", ex);
+      }
+    }
+
+    URLClassLoader newLoader = new URLClassLoader(urls,
         Thread.currentThread().getContextClassLoader());
+
     return newLoader;
   }
 }

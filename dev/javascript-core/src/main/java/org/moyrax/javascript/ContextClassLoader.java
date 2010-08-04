@@ -1,8 +1,6 @@
 package org.moyrax.javascript;
 
 import java.io.IOException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.HashMap;
 
 import org.moyrax.javascript.instrument.ComponentClassAdapter;
@@ -15,22 +13,15 @@ import org.moyrax.util.ScriptUtils;
  * @author Matias Mirabelli <lumen.night@gmail.com>
  * @since 1.2
  */
-public class ContextClassLoader extends URLClassLoader {
+public class ContextClassLoader extends ClassLoader {
   /** Keep track of the loaded Script classes. */
   private HashMap<String, Class<?>> loaded = new HashMap<String, Class<?>>();
 
   /**
    * {@inheritDoc}
    */
-  public ContextClassLoader(final URL[] urls) {
-    super(urls);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public ContextClassLoader(final URL[] urls, final ClassLoader parent) {
-    super(urls, parent);
+  public ContextClassLoader(final ClassLoader parent) {
+    super(parent);
   }
 
   /**
@@ -65,7 +56,7 @@ public class ContextClassLoader extends URLClassLoader {
             this);
 
         byte[] bytecode = adapter.toByteArray();
-  
+
         result = defineClass(className, bytecode, 0, bytecode.length);
 
         loaded.put(className, result);

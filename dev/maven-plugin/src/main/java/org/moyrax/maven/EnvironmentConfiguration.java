@@ -1,12 +1,9 @@
 package org.moyrax.maven;
 
 import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.Validate;
-import org.moyrax.javascript.ContextClassLoader;
 
 /**
  * This class provides the required information and flags to execute the
@@ -17,14 +14,9 @@ import org.moyrax.javascript.ContextClassLoader;
  */
 public class EnvironmentConfiguration {
   /**
-   * Base path of the project that is using this plugin.
+   * Current project's execution {@link ClassLoader}.
    */
-  private File targetPath;
-
-  /**
-   * {@link ClassLoader} used to lookup for exportable resources.
-   */
-  private ContextClassLoader classLoader;
+  private ClassLoader classLoader;
 
   /**
    * List of included testing resources to be executed.
@@ -110,27 +102,14 @@ public class EnvironmentConfiguration {
   }
 
   /**
-   * Gets the base path of the project that is using the plugin.
+   * Sets the execution class loader.
    *
-   * @return Returns the project's base path.
+   * @param theContextClassLoader Execution class loader. It cannot be null.
    */
-  public File getTargetPath() {
-    if (targetPath == null) {
-      throw new IllegalStateException("The project base path is not defined.");
-    }
+  public void setClassLoader(final ClassLoader theContextClassLoader) {
+    Validate.notNull(theContextClassLoader, "The class loader cannot be null.");
 
-    return targetPath;
-  }
-
-  /**
-   * Sets the base path of the current project.
-   *
-   * @param theTargetPath Base path of the project. It cannot be null or empty.
-   */
-  public void setTargetPath(final File theTargetPath) {
-    Validate.notNull(theTargetPath, "The base path cannot be null.");
-
-    targetPath = theTargetPath;
+    classLoader = theContextClassLoader;
   }
 
   /**
@@ -141,24 +120,10 @@ public class EnvironmentConfiguration {
    *    resources.
    */
   public ClassLoader getClassLoader() {
-    try {
-      if (classLoader == null) {
-        URL[] urls = new URL[] {
-            new URL(getTargetPath().toURI().toURL().toExternalForm() +
-                "test-classes/"),
-    
-            new URL(getTargetPath().toURI().toURL().toExternalForm() +
-                "classes/")
-        };
-
-        classLoader = new ContextClassLoader(urls,
-            this.getClass().getClassLoader());
-      }
-
-      return classLoader;
-
-    } catch (MalformedURLException ex) {
-      throw new RuntimeException("Cannot build the project's classpath.", ex);
+    if (classLoader == null) {
+      classLoader = Thread.currentThread().getContextClassLoader();
     }
+
+    return classLoader;
   }
 }

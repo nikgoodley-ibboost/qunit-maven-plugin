@@ -1,5 +1,15 @@
 package org.moyrax.javascript.instrument;
 
+import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
+import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
+import static org.objectweb.asm.Opcodes.ACC_SUPER;
+import static org.objectweb.asm.Opcodes.ALOAD;
+import static org.objectweb.asm.Opcodes.GETFIELD;
+import static org.objectweb.asm.Opcodes.ILOAD;
+import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
+import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
+import static org.objectweb.asm.Opcodes.IRETURN;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,14 +21,6 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
-
-import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
-import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
-import static org.objectweb.asm.Opcodes.ALOAD;
-import static org.objectweb.asm.Opcodes.ILOAD;
-import static org.objectweb.asm.Opcodes.IRETURN;
-import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
-import static org.objectweb.asm.Opcodes.ACC_SUPER;
 
 /**
  * Processes an exportable class and generates the needed code to be recognized
@@ -52,7 +54,7 @@ public final class ComponentClassAdapter extends ClassAdapter {
 
     /**
      * The method's descriptor.
-     * 
+     *
      * For more information refer to the following url: <a href="
      *  http://java.sun.com/docs/books/jvms/second_edition/html/
      *ClassFile.doc.html#7035">JVM Specification - Method Descriptors</a>
@@ -87,7 +89,7 @@ public final class ComponentClassAdapter extends ClassAdapter {
   /** List of MethodDescriptor objects which represent the methods that will be
    * generated. */
   private ArrayList<MethodDescriptor> descriptors =
-      new ArrayList<MethodDescriptor>();
+    new ArrayList<MethodDescriptor>();
 
   /**
    * Indicates if the script class was already transformed. Default is
@@ -119,7 +121,7 @@ public final class ComponentClassAdapter extends ClassAdapter {
       final ClassLoader classLoader) throws IOException {
 
     this(new ClassReader(classLoader.getResourceAsStream(
-            hostClass.getName().replace(".", "/") + ".class")));
+        hostClass.getName().replace(".", "/") + ".class")));
 
     this.script = new ScriptComponent(hostClass, classLoader);
     this.functions = script.getFunctionNames();
@@ -183,7 +185,7 @@ public final class ComponentClassAdapter extends ClassAdapter {
 
     if (this.functions.contains(name) ||
         (script.getConstructor() != null &&
-          script.getConstructor().getName().equals(name))) {
+            script.getConstructor().getName().equals(name))) {
 
       MethodDescriptor descriptor = new MethodDescriptor(name, desc, signature,
           exceptions);
@@ -200,7 +202,7 @@ public final class ComponentClassAdapter extends ClassAdapter {
        one needed by the new superclass. */
     if (name.equals("<init>")) {
       final String className = script.getImplementationClass().getName()
-          .replace(".", "/");
+      .replace(".", "/");
 
       /* Generates the default constructor adapter.
         TODO(mmirabelli): find how to change the access of the default
@@ -212,8 +214,8 @@ public final class ComponentClassAdapter extends ClassAdapter {
         private boolean alreadySet = false;
 
         @Override
-        public void visitMethodInsn(int opcode, String klass, String method,
-            String desc) {
+        public void visitMethodInsn(final int opcode, final String klass, final String method,
+            final String desc) {
           if ((opcode == INVOKESPECIAL) && !alreadySet) {
             super.visitMethodInsn(opcode, className, method, desc);
 
@@ -302,6 +304,30 @@ public final class ComponentClassAdapter extends ClassAdapter {
   }
 
   /**
+   * Instruments the getter needed by Rhino to retrieve the component's name.
+   * The component name is the same that will be used in JavaScript. By default,
+   * the component name is set to the class name.
+   */
+  private void addClassNameGetter() {
+    // Adds a private field to the class to hold the component's name.
+    String fieldName = "$className";
+
+    cv.visitField(ACC_PRIVATE, fieldName, "Ljava/lang/String;", "",
+        script.getClassName());
+
+    // Creates the getter method which returns the created field.
+    String methodName = "getClassName";
+    MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, methodName,
+        "()Ljava/lang/String;", null, null);
+    mv.visitVarInsn(ALOAD, 0);
+    mv.visitFieldInsn(GETFIELD,
+        script.getScriptableClassName().replace(".", "/"),
+        fieldName, "Ljava/lang/String;");
+    mv.visitInsn(Type.getType(String.class).getOpcode(IRETURN));
+    mv.visitMaxs(0, 0);
+  }
+
+  /**
    * Generates the JavaScript functions and ends generating the class.
    */
   @Override
@@ -309,6 +335,8 @@ public final class ComponentClassAdapter extends ClassAdapter {
     for (MethodDescriptor descriptor : descriptors) {
       generateFunction(descriptor);
     }
+
+    addClassNameGetter();
 
     cv.visitEnd();
   }

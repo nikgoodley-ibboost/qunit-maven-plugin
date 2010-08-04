@@ -1,8 +1,8 @@
 package org.moyrax.javascript;
 
 import static junit.framework.Assert.assertTrue;
+
 import java.io.IOException;
-import java.net.URL;
 
 import net.sourceforge.htmlunit.corejs.javascript.ScriptableObject;
 
@@ -67,7 +67,6 @@ public class ScriptClassAdapterTest {
   public void setUp() throws IOException {
     if (classLoader == null) {
       classLoader = new ContextClassLoader(
-          new URL[] {},
           Thread.currentThread().getContextClassLoader());
       Thread.currentThread().setContextClassLoader(classLoader);
     }
