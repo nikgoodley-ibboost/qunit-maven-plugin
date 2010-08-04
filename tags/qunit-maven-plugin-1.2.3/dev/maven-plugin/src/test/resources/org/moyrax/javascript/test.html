@@ -1,0 +1,23 @@
+<html>
+  <body>
+    <p id="qunit-tests" class="result"></p>
+
+    <img alt="test" src="test.jpg" />
+    <div id="test">Hello</div>
+
+    <script type="text/javascript">
+        module("core");
+          test("test1", function() {
+            expect(3);
+
+            ok( true, "test running before jquery loads");
+            ok( true, "test running before jquery loads");
+            ok( true, "test running before jquery loads");
+          });
+  
+          test("test2", function() {
+            ok( true, "test running after jquery loads");
+          });
+    </script>
+  </body>
+</html>
