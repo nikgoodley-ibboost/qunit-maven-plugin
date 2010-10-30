@@ -60,7 +60,8 @@ public enum ModuleStatus implements Status<TestSuite> {
     public String getMessage(final Operation<TestSuite> operation) {
       String message = ModuleStatus.SUCCEED.getMessage(operation);
 
-      return message + " <<<<<<<<<< FAILED!";
+      return message.substring(0, message.length() - 2)
+          + " <<<<<<<<<< FAILED!\n\n";
     }
   },
 
