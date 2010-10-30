@@ -1,0 +1,23 @@
+<html>
+  <body>
+    <p id="qunit-tests" class="result"></p>
+
+    <img alt="test" src="test.jpg" />
+    <div id="test">Hello</div>
+
+    <script type="text/javascript">
+        module("core");
+          test("org.moyrax.qunit.Test1", function() {
+            expect(3);
+
+            ok( true, "test running before jquery loads");
+            ok( true, "test running before jquery loads");
+            ok( true, "test running before jquery loads");
+          });
+  
+          test("org.moyrax.qunit.Test2", function() {
+            ok( true, "test running after jquery loads");
+          });
+    </script>
+  </body>
+</html>
