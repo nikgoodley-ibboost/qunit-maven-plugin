@@ -1,6 +1,9 @@
 package org.moyrax.javascript;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,6 +16,7 @@ import net.sourceforge.htmlunit.corejs.javascript.JavaScriptException;
 import net.sourceforge.htmlunit.corejs.javascript.NativeObject;
 import net.sourceforge.htmlunit.corejs.javascript.Scriptable;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.Validate;
 import org.moyrax.javascript.annotation.GlobalFunction;
 import org.moyrax.javascript.annotation.Script;
@@ -131,6 +135,57 @@ public class Shell extends Global {
       pageContext.setLogLevel(logLevel);
       pageContext.open();
     }
+  }
+
+  /**
+   * Reads resources from different locations.
+   *
+   * @param context Current execution context.
+   * @param scope   Script global scope.
+   * @param arguments  Arguments passed to this method from the script.
+   * @param thisObj Reference to the current javascript object.
+   */
+  @GlobalFunction
+  public static Object readResource(final Context context, final Scriptable scope,
+      final Object[] arguments, final Function thisObj) {
+
+    final ArrayList<InputStream> input = new ArrayList<InputStream>();
+
+    for (int i = 0, j = arguments.length; i < j; i++) {
+      final String resourceUri = (String)arguments[i];
+
+      final Object result = findResolver(resourceUri)
+        .resolve(resourceUri);
+
+      if (result != null) {
+        try {
+          if (result.getClass().equals(File.class)) {
+            input.add(new FileInputStream((File)result));
+          } else if (InputStream.class.isInstance(result)) {
+            input.add((InputStream)result);
+          }
+        } catch(IOException ex) {}
+      } else {
+        throw new JavaScriptException(arguments[i].toString() +
+            " not found in the context path.", "", 0);
+      }
+    }
+
+    if (input.size() > 0) {
+      ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+      for (InputStream resource : input) {
+        try {
+          IOUtils.copy(resource, out);
+        } catch(IOException ex) {
+          // Not handled.
+        }
+      }
+
+      return out.toString();
+    }
+
+    return "";
   }
 
   /**
