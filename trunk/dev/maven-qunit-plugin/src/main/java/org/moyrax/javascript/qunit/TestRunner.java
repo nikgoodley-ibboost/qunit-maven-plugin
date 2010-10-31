@@ -14,7 +14,6 @@ import org.apache.commons.lang.Validate;
 import org.moyrax.reporting.TestCase;
 import org.moyrax.reporting.TestSuite;
 
-import com.gargoylesoftware.htmlunit.ScriptException;
 import com.gargoylesoftware.htmlunit.WebClient;
 
 /**
@@ -91,8 +90,7 @@ public class TestRunner {
    * @param resource InputStream to read the JavaScript source. It cannot be
    *    null.
    */
-  public void run(final InputStream resource) throws IOException,
-      ScriptException {
+  public void run(final InputStream resource) throws IOException {
     run(resource, null);
   }
 
@@ -104,7 +102,7 @@ public class TestRunner {
    * @param name Name of the test that's being run. It can be null.
    */
   public void run(final InputStream resource, final String name)
-      throws IOException, ScriptException {
+      throws IOException {
 
     Validate.notNull(resource, "The resource cannot be null.");
 
@@ -139,7 +137,7 @@ public class TestRunner {
    *
    * @param file JavaScript source file to execute. It cannot be null.
    */
-  public void run(final File file) throws IOException, ScriptException {
+  public void run(final File file) throws IOException {
     Validate.notNull(file, "The file cannot be null.");
 
     TestHandler handler = new TestHandler(client, file);
@@ -154,7 +152,7 @@ public class TestRunner {
    *
    * @param url Url where the JavaSript resource is located. It cannot be null.
    */
-  public void run(final URL url) throws IOException, ScriptException {
+  public void run(final URL url) throws IOException {
     Validate.notNull(url, "The url cannot be null.");
 
     TestHandler handler = new TestHandler(client, url);

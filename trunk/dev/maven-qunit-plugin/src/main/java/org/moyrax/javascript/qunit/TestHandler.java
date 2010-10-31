@@ -11,15 +11,14 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.gargoylesoftware.htmlunit.NicelyResynchronizingAjaxController;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.moyrax.maven.QUnitException;
 import org.moyrax.reporting.ReportEntry;
 import org.moyrax.reporting.TestCase;
 import org.moyrax.reporting.TestSuite;
 
+import com.gargoylesoftware.htmlunit.NicelyResynchronizingAjaxController;
 import com.gargoylesoftware.htmlunit.ScriptException;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
@@ -32,9 +31,6 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
  * @since 0.1.2
  */
 public class TestHandler extends ReportEntry {
-  /** Default class logger. */
-  private static final Log log = LogFactory.getLog(TestHandler.class);
-
   /* Positions of the known-matches */
   private static final int MODULE_NAME = 1;
   private static final int TEST_NAME = 2;
@@ -89,6 +85,11 @@ public class TestHandler extends ReportEntry {
   private int total;
 
   /**
+   * Error thrown during the test resource running.
+   */
+  private QUnitException error;
+
+  /**
    * Constructs a new {@link TestHandler} for the specified file, and uses
    * the web client to run the tests.
    *
@@ -128,7 +129,7 @@ public class TestHandler extends ReportEntry {
    *
    * @throws IOException If there're errors reading the test file.
    */
-  public void run() throws IOException, ScriptException {
+  public void run() throws IOException {
     try {
       startTime = new Date().getTime();
 
@@ -140,13 +141,15 @@ public class TestHandler extends ReportEntry {
       // This is to avoid errors when background JS hasn't updated the DOM yet
       // while we're trying to access it.
       // See: http://htmlunit.sourceforge.net/faq.html
-       browser.waitForBackgroundJavaScript(10000);
+      browser.waitForBackgroundJavaScript(10000);
 
       readTests(page);
       readResults(page);
 
     } catch (IOException ex) {
-      throw new IOException("Cannot run the test file.", ex);
+      throw new IOException("Cannot read the test resource.", ex);
+    } catch (ScriptException scriptEx) {
+      error = new QUnitException(scriptEx);
     }
   }
 
@@ -175,6 +178,16 @@ public class TestHandler extends ReportEntry {
    */
   public int getTotal() {
     return total;
+  }
+
+  /**
+   * Returns the error thrown while loading the test file.
+   *
+   * @return A {@link QUnitException} with the error information, or
+   *    <code>null</code> if there's no error.
+   */
+  public QUnitException getError() {
+    return error;
   }
 
   /**

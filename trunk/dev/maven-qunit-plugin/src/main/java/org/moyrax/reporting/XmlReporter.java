@@ -9,6 +9,7 @@ import org.apache.commons.lang.Validate;
 import org.codehaus.plexus.util.xml.PrettyPrintXMLWriter;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.Xpp3DomWriter;
+import org.moyrax.javascript.qunit.ModuleStatus;
 
 /**
  * Reports operations in XML format. The output format is surefire-reports
@@ -90,7 +91,7 @@ public class XmlReporter extends AbstractReporter {
       final Status<T> status) {
     Validate.notNull(operation, "The operation cannot be null.");
 
-    if (status == ReportStatus.DONE) {
+    if (status == ReportStatus.DONE || status == ModuleStatus.FAILED) {
       writeResults();
     } else {
       super.stopped(operation, status);

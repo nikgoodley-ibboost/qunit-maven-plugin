@@ -17,8 +17,6 @@ import org.moyrax.resolver.LibraryResolver;
 import org.moyrax.resolver.ResourceResolver;
 import org.moyrax.util.ResourceUtils;
 
-import com.gargoylesoftware.htmlunit.ScriptException;
-
 /**
  * This class uses HTMLUnit to initialize a browser environment which will be
  * used to be captured by the js-test-driver server.
@@ -82,7 +80,7 @@ public class TestingClient {
   /**
    * Executes all configured tests.
    */
-  public void runTests() throws ScriptException {
+  public void runTests() {
     this.loadClientComponents();
 
     // Handle local files
@@ -120,8 +118,6 @@ public class TestingClient {
         }
       }
     }
-
-    runner.reportAll();
   }
 
   /**

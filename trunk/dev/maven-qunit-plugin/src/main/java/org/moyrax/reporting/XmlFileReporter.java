@@ -3,6 +3,7 @@ package org.moyrax.reporting;
 import java.io.PrintWriter;
 
 import org.apache.commons.lang.Validate;
+import org.moyrax.javascript.qunit.ModuleStatus;
 
 /**
  * Report operations to the file system in XML surefire-compliant format.
@@ -82,7 +83,7 @@ public class XmlFileReporter extends PlainFileReporter {
 
     reporter.stopped(operation, status);
 
-    if (status == ReportStatus.DONE) {
+    if (status == ReportStatus.DONE || status == ModuleStatus.FAILED) {
       closeFile(operation);
     }
   }
