@@ -170,11 +170,8 @@ public class QUnitPlugin extends AbstractMojo {
     initEnvironment();
     loadContextResources();
 
-    try {
-      client.runTests();
-    } catch (Exception ex) {
-      throw new MojoFailureException(ex.getMessage(), ex);
-    }
+    client.runTests();
+    runner.reportAll();
   }
 
   /**
@@ -255,7 +252,7 @@ public class QUnitPlugin extends AbstractMojo {
    * Returns the directory where the reports will be written.
    */
   private String getReportsDirectory() {
-    File directory = new File(project.getBuild().getOutputDirectory(),
+    File directory = new File(new File(project.getBasedir(), "target"),
       "qunit-reports");
 
     if (!directory.exists()) {
