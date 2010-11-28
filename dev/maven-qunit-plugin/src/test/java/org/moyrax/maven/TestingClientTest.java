@@ -1,5 +1,10 @@
 package org.moyrax.maven;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.maven.shared.model.fileset.FileSet;
@@ -12,6 +17,7 @@ import org.moyrax.javascript.qunit.QUnitReporter;
 import org.moyrax.javascript.qunit.TestRunner;
 import org.moyrax.resolver.ClassPathResolver;
 import org.moyrax.resolver.LibraryResolver;
+import org.moyrax.util.ResourceUtils;
 
 import com.gargoylesoftware.htmlunit.WebClient;
 
@@ -87,7 +93,9 @@ public class TestingClientTest {
   /**
    * Initializes the required resources for the test environment.
    */
-  private void loadContextResources(final TestingClient client) {
+  private void loadContextResources(final TestingClient client)
+      throws IOException {
+
     final String[] dependencies = new String[] {
         /* QUnit testing framework. */
         "org/moyrax/javascript/lib/qunit.js"
@@ -96,5 +104,13 @@ public class TestingClientTest {
     for (int i = 0; i < dependencies.length; i++) {
       client.addGlobalResource(dependencies[i]);
     }
+
+    // Copies the qunit source file for the local tests.
+    IOUtils.copy(
+        ResourceUtils.getResourceInputStream(
+            "classpath:org/moyrax/javascript/lib/qunit.js"),
+        new FileOutputStream(new File(System.getProperty("java.io.tmpdir"),
+            "qunit.js"))
+    );
   }
 }
