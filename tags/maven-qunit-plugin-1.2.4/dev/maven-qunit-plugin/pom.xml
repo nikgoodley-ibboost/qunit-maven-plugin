@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.moyrax.qunit</groupId>
+    <artifactId>dev</artifactId>
+    <version>1.2.4</version>
+  </parent>
+
+  <groupId>org.moyrax.qunit</groupId>
+  <artifactId>maven-qunit-plugin</artifactId>
+  <packaging>maven-plugin</packaging>
+  <name>QUnit Maven Automation Plugin</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.easymock</groupId>
+      <artifactId>easymock</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.easymock</groupId>
+      <artifactId>easymockclassextension</artifactId>
+    </dependency>
+
+    <!-- Maven dependencies -->
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-plugin-api</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-project</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.maven.shared</groupId>
+      <artifactId>file-management</artifactId>
+    </dependency>
+
+    <!-- Rhino JavaScript interpreter -->
+    <dependency>
+      <groupId>rhino</groupId>
+      <artifactId>js</artifactId>
+    </dependency>
+
+    <!-- JavaScript core-->
+    <dependency>
+      <groupId>org.moyrax</groupId>
+      <artifactId>javascript-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.2-beta-5</version>
+        <configuration>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+            <descriptorRef>project</descriptorRef>
+          </descriptorRefs>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <!-- vim: set ts=2 et sw=2 ai tw=80: -->
+</project>
+
