@@ -108,7 +108,7 @@ public class TestRunner {
 
     File file;
 
-    if (name != null && !name.isEmpty()) {
+    if (name != null && !StringUtils.isBlank(name)) {
       String fileName = name;
 
       if (name.contains(File.separator)) {

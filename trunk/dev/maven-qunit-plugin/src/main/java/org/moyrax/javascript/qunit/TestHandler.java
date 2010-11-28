@@ -147,7 +147,8 @@ public class TestHandler extends ReportEntry {
       readResults(page);
 
     } catch (IOException ex) {
-      throw new IOException("Cannot read the test resource.", ex);
+      throw (IOException) new IOException("Cannot read the test resource.")
+          .initCause(ex);
     } catch (ScriptException scriptEx) {
       error = new QUnitException(scriptEx);
     }

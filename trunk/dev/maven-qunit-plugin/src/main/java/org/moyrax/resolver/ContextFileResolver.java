@@ -172,7 +172,7 @@ public class ContextFileResolver implements ResourceResolver {
       relativePath = StringUtils.substringBeforeLast(resourceName, "/");
     }
 
-    if (!relativePath.isEmpty()) {
+    if (!StringUtils.isBlank(relativePath)) {
       if (!relativePath.endsWith("/")) {
         relativePath += "/";
       }
@@ -181,7 +181,7 @@ public class ContextFileResolver implements ResourceResolver {
     }
 
     for (int i = 0, j = contextPath.size(); i < j; i++) {
-      final File file = new File(((File)contextPath.get(i)).getAbsolutePath() +
+      final File file = new File((contextPath.get(i)).getAbsolutePath() +
           "/" + relativePath + finalName);
 
       if (file.exists()) {

@@ -1,5 +1,6 @@
 package org.moyrax.reporting;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.logging.Log;
 
@@ -38,7 +39,7 @@ public class LogReporter extends AbstractReporter {
     Validate.notNull(operation, "The operation cannot be null.");
     Validate.notNull(message, "The message cannot be null.");
 
-    if (!message.isEmpty()) {
+    if (!StringUtils.isBlank(message)) {
       getLog().info(getPrefix() + " " + message);
     }
   }
