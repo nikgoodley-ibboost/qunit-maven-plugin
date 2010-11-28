@@ -52,9 +52,8 @@ public class QUnitPluginTest {
         ArtifactResolutionResult.class);
     Build build = createMock(Build.class);
 
-    expect(build.getOutputDirectory())
-        .andReturn(new File(baseDirectory, "target").getAbsolutePath())
-        .once();
+    expect(project.getBasedir())
+        .andReturn(new File(baseDirectory)).once();
     expect(project.getBuild()).andReturn(build).once();
     expect(project.getTestClasspathElements())
       .andReturn(new LinkedList<String>()).anyTimes();
