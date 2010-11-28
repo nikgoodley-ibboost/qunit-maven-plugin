@@ -7,7 +7,54 @@
   <version>1.2.4-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>QUnit Maven Plugin - parent</name>
-  <url>http://code.google.com/p/qunit-maven-plugin/</url>
+
+  <description>
+    QUnit Maven Plugin is a maven integration tool for running automated unit
+    testing of JavaScript source files.
+  </description>
+
+  <url>http://qunit-maven-plugin.googlecode.com</url>
+
+  <licenses>
+    <license>
+      <name>Apache 2</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+      <comments>A business-friendly OSS license</comments>
+    </license>
+  </licenses>
+
+  <issueManagement>
+    <system>Google Code</system>
+    <url>http://code.google.com/p/qunit-maven-plugin/issues</url>
+  </issueManagement>
+
+  <mailingLists>
+    <mailingList>
+      <name>QUnit Maven Plugin Discussion List</name>
+      <subscribe>http://groups.google.com/group/qunit-maven-plugin/subscribe</subscribe>
+      <unsubscribe />
+      <post />
+      <archive />
+      <otherArchives>
+        <otherArchive />
+      </otherArchives>
+    </mailingList>
+  </mailingLists>
+
+  <developers>
+    <developer>
+      <name>Matias Mirabelli</name>
+      <id>mmirabelli</id>
+      <email>lumen.night  AT  gmail</email>
+      <organization>Globant</organization>
+    </developer>
+    <developer>
+      <name>Pablo Graña</name>
+      <id>pgrana</id>
+      <organization>Globant</organization>
+    </developer>
+  </developers>
 
   <modules>
     <module>dev</module>
@@ -22,13 +69,42 @@
         <version>2.0-beta-7</version>
         <configuration>
           <tagBase>https://qunit-maven-plugin.googlecode.com/svn/tags</tagBase>
-          <preparationGoals>install</preparationGoals>
+          <preparationGoals>source:jar javadoc:jar install gpg:sign repository:bundle-create</preparationGoals>
           <autoVersionSubmodules>true</autoVersionSubmodules>
+          <mavenExecutorId>forked-path</mavenExecutorId>
         </configuration>
       </plugin>
     </plugins>
   </build>
 
+  <profiles>
+    <profile>
+      <id>release-sign-artifacts</id>
+      <activation>
+        <property>
+          <name>performRelease</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
   <repositories>
     <!-- Maven central repository -->
@@ -71,7 +147,7 @@
   <scm>
     <connection>scm:svn:http://qunit-maven-plugin.googlecode.com/svn/trunk/</connection>
     <developerConnection>scm:svn:https://qunit-maven-plugin.googlecode.com/svn/trunk/</developerConnection>
-    <url>http://qunit-maven-plugin.googlecode.com/svn/trunk/</url>
+    <url>http://svn.apache.org/viewcvs.cgi/maven</url>
   </scm>
 
   <distributionManagement>
