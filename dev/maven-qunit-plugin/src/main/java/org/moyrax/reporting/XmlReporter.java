@@ -5,6 +5,7 @@ import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.codehaus.plexus.util.xml.PrettyPrintXMLWriter;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
@@ -182,7 +183,7 @@ public class XmlReporter extends AbstractReporter {
    *    cannot be null.
    */
   private void writeOutput(final Xpp3Dom element, final TestCase source) {
-    if (!source.getOutput().isEmpty()) {
+    if (!StringUtils.isBlank(source.getOutput())) {
       Xpp3Dom output = element.getChild("system-out");
 
       if (output == null) {

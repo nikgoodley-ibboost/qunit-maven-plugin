@@ -2,6 +2,7 @@ package org.moyrax.reporting;
 
 import java.io.PrintStream;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 /**
@@ -50,7 +51,7 @@ public class ConsoleReporter extends AbstractReporter {
     Validate.notNull(operation, "The operation cannot be null.");
     Validate.notNull(message, "The message cannot be null.");
 
-    if (!message.isEmpty()) {
+    if (!StringUtils.isBlank(message)) {
       String outputBuffer = getPrefix() + message;
 
       printer.println(outputBuffer);
