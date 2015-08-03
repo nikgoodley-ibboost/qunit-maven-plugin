@@ -1,0 +1,8 @@
+  * [Configuration](Configuration.md)
+    * [Plugin repository](PluginRepository.md)
+    * [POM configuration](Configure.md)
+  * [Documentation](Documentation.md)
+    * [Getting started](GettingStarted.md)
+    * [Creating tests](CreatingTests.md)
+  * [Developers](Developers.md)
+    * [Plugin architecture](Architecture.md)
